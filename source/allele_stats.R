@@ -1,7 +1,10 @@
 #!/usr/bin/env Rscript
 
+########################################################################################################################
 # The following RScript performs a simple analysis of some statistics on allele information.
 # Input is assumed to be as generated from ProcessAlleleStatistics.py
+#
+# TODO: user argparse for arguments
 
 df <- read.csv("./results/allele_stats.csv")
 df$wdb_ref_allele <- as.character(df$wdb_ref_allele)

@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 __author__ = 'heroico'
 
+########################################################################################################################
+# This script gathers information
+
 import logging
 import os
 import metax.Gene as Gene

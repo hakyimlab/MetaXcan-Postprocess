@@ -1,5 +1,8 @@
 #!/usr/bin/env Rscript
 
+########################################################################################################################
+# Handy plotting and helper functions.
+
 library(ggplot2)
 library(qqman)
 

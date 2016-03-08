@@ -1,4 +1,10 @@
 #!/usr/bin/env Rscript
+
+########################################################################################################################
+# Plots different betas, (taken as output from Metaxcan's M03_betas)
+#
+# TODO: user argparse for arguments
+
 library(ggplot2)
 
 beta_plot <- function(z, z_q, file_prefix) {

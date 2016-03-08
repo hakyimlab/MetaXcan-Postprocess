@@ -1,6 +1,11 @@
 #! /usr/bin/env python
 __author__ = 'heroico'
 
+########################################################################################################################
+# compare a stored variance to a calvulated variance from GWAS's snp info
+#
+# TODO : verify sanity
+
 import os
 import logging
 import metax.Logging as Logging

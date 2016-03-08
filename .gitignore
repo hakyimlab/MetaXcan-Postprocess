@@ -24,3 +24,15 @@
 
 #pyenv
 .python-version
+
+
+#python compiled bytecode
+*.pyc
+
+# safe places to store data
+data*
+intermediate*
+results*
+kk*
+support_data*
+build*

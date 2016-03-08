@@ -1,0 +1,38 @@
+# History files
+.Rhistory
+
+# Example code in package build process
+*-Ex.R
+
+*~
+
+# R data files from past sessions
+.Rdata
+
+# RStudio files
+.Rproj.user/
+
+# Mac hidden files
+*.DS_Store
+
+# Python's setuptools stuff
+*dist/
+*.egg-info
+
+# PyCharm project files
+*.idea
+
+#pyenv
+.python-version
+
+
+#python compiled bytecode
+*.pyc
+
+# safe places to store data
+data*
+intermediate*
+results*
+kk*
+support_data*
+build*

@@ -38,7 +38,7 @@
 	# .
 	# column n (Breast_mammary): gene names 
 
-		# an example of "input_file.csv"
+		# an example of "input_file_top_gene_list.csv"
 		#   | databases  				    | CrossTissue | TW_Adipose-Subcutaneous | TW_Breast-MammaryTissue | TW_Ovary |
 		#   | CrossTissue_elasticNet0_0.5.db    	    | CHMP4C 	  | CHMP4C                  | CHMP4C                  | LRRC37A  | 
 		#   | TW_Adipose-Subcutaneous_elasticNet0_0.5.db    | CRHR1       | CRHR1                   | CRHR1                   | LRRC37A2 | 

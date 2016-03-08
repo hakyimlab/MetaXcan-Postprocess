@@ -1,14 +1,14 @@
 # 
-#						           MetaXcan Post-Processing Scripts  
+#						MetaXcan Post-Processing Scripts  
 #
 #             				        	   Im Lab 
-#              Section of Genetics, Department of Medicine, University of Chicago 
+#                             Section of Genetics, Department of Medicine, University of Chicago 
 #          							
 #
-# 						Part one: Top gene lists with SNPs 
-# 						Part two: QQ-plot (tissue vs all tissues)
-# 						Part three: QQ-plot (known OC genes vs all genes)
-# 						Part four: Manhattan plot (tissue vs all tissues)
+# 				   	Part one: Top gene lists with SNPs 
+# 					Part two: QQ-plot (tissue vs all tissues)
+# 					Part three: QQ-plot (known OC genes vs all genes)
+# 					Part four: Manhattan plot (tissue vs all tissues)
 # 		
 
 ####################################################
@@ -39,15 +39,15 @@
 	# column n (Breast_mammary): gene names 
 
 		# an example of "input_file.csv"
-		#	| databases  									| CrossTissue | TW_Adipose-Subcutaneous | TW_Breast-MammaryTissue | TW_Ovary |
-		#   | CrossTissue_elasticNet0_0.5.db    			| CHMP4C 	  |	CHMP4C                  | CHMP4C                  | LRRC37A  | 
-		#	| TW_Adipose-Subcutaneous_elasticNet0_0.5.db    | CRHR1       | CRHR1                   | CRHR1                   | LRRC37A2 | 
-		#	| TW_Breast-MammaryTissue_elasticNet0_0.5.db    | HOXB2       | HOXB2                   | HOXB2                   | PTX3     | 
-		#	| TW_Ovary_elasticNet0_0.5.db      				| HOXB3       | LEKR1                   | HOXB9                   | VEPH1    | 
-		#   |												| HOXD1       | LRRC37A                 | LEKR1                   |          | 
-		#	|												| HOXD3       | LRRC37A2                | LRRC37A                 |          | 
-		#	|												| LEKR1       |                         | LRRC37A2                |          |
-		#	|												| LRRC37A     |                         | WNT3                    |          | 
+		#   | databases  				    | CrossTissue | TW_Adipose-Subcutaneous | TW_Breast-MammaryTissue | TW_Ovary |
+		#   | CrossTissue_elasticNet0_0.5.db    	    | CHMP4C 	  | CHMP4C                  | CHMP4C                  | LRRC37A  | 
+		#   | TW_Adipose-Subcutaneous_elasticNet0_0.5.db    | CRHR1       | CRHR1                   | CRHR1                   | LRRC37A2 | 
+		#   | TW_Breast-MammaryTissue_elasticNet0_0.5.db    | HOXB2       | HOXB2                   | HOXB2                   | PTX3     | 
+		#   | TW_Ovary_elasticNet0_0.5.db      		    | HOXB3       | LEKR1                   | HOXB9                   | VEPH1    | 
+		#   |						    | HOXD1       | LRRC37A                 | LEKR1                   |          | 
+		#   |						    | HOXD3       | LRRC37A2                | LRRC37A                 |          | 
+		#   |						    | LEKR1       |                         | LRRC37A2                |          |
+		#   |						    | LRRC37A     |                         | WNT3                    |          | 
 
 
 ############################

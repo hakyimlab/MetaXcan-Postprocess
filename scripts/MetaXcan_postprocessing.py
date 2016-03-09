@@ -15,8 +15,9 @@
 #### How to run this script from terminal  ####
 ###############################################
 
-# install python if not installed:
-#          https://www.continuum.io/downloads
+# install latest python 3 if not installed:
+#          https://www.continuum.io/downloads  # this software packages containing many modules we will import, such as pandas, sqlite3 etc. 
+#          alias python='python3.5'   # run this in the terminal to select python3.5 if there are multiple python versions installed  
 # cd to your working directory containing: 
 #          this python script (MetaXcan_postprocessing.py)
 #          all database files (*.db)
@@ -52,7 +53,10 @@ print ('------------------------------------------------------')
 print ('- Getting started, Part one: Top gene list with SNPs -')
 print ('------------------------------------------------------')
 
-import os, pandas, sqlite3 
+try: 
+   import os, pandas, sqlite3 
+except ImportError: 
+   raise ImportError ("Please download latest python3 and modules at https://www.continuum.io/downloads ")
 
 def fetchTopGeneList(inputFile="input_file_top_gene_list.csv"):
 

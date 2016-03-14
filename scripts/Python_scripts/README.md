@@ -15,8 +15,9 @@
 
  + `run.sh` - Helper bash script that launches run_MetaXcanPostprocessing file 
  + `run_MetaXcanPostprocessing.py` - A simple "main()" that loads MetaXcanPostprocessing file
- + `MetaXcanPostprocessing.py` - This is where all post-processing work will be, such as manhattan plot, qqplot, table of top genes with corresponding snps by tissues.  
+ + `MetaXcanPostprocessing.py` - This is where all post-processing work will be, such as manhattan plot, qqplot, table of top genes with corresponding snps by tissues  
  + `helpers.py` - This contains all helper functions that can be used through post-processing   
+ + `__init__.py` - This is a marker file that marks current directory as python package directory 
  + `README.md` - A brief description about this software package 
 
 

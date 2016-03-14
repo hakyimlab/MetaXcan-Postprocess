@@ -40,7 +40,7 @@ def open_log(filename):
     global logfile
     global current_logs
 
-    logfile = open(get_log_path(filename) + get_current_time() + filename + '.log', "w")
+    logfile = open(get_log_path(filename) + get_current_time() + filename, "w")
     current_logs = []
 
 # Add logs 

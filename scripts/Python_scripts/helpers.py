@@ -8,9 +8,7 @@ try:
    from datetime import datetime
 except Exception as e: 
    hints = "Please download latest python3 and modules at https://www.continuum.io/downloads" 
-   print(hints)
    add_log(hints)
-   print(e)
    add_log(e)
 
 ###########################
@@ -47,6 +45,7 @@ def open_log(filename):
 def add_log(log_str):
     global current_logs
 
+    print (log_str)
     current_logs.append(log_str + '\n')
 
 # Output log 
@@ -66,7 +65,6 @@ def pre_message(partName):
     messages.append('- Getting started in MetaXcan postprocessing -- %s- ' %partName)
     messages.append(LINE)
     for msg in messages:
-        print(msg)
         add_log(msg)
 
 # Conclusion messages 
@@ -78,7 +76,6 @@ def post_message(filename):
     messages.append("Done!\n")
     messages.append('@' + datetime.now().strftime('%H:%M:%S \n%Y/%m/%d\n'))
     for msg in messages:
-        print(msg)
         add_log(msg)
 
 # Close log 
@@ -108,9 +105,7 @@ def get_input_path(filename, tag):  # tag - such as .csv
     input_path = get_current_path() + "/input/" + filename + tag 
     if not os.path.exists(input_path): 
         warning = "Please make sure that you have an input folder with input files"
-        print(warning)
         add_log(warning)
-    print('Input: %s' %input_path)
     add_log('Input: %s' %input_path)
     return input_path
 
@@ -119,7 +114,6 @@ def get_database_path(filename):
     database_path = get_current_path() + "/databases/"
     if not os.path.exists(database_path): 
         warning = "Please make sure that you have created a databases folder" 
-        print(warning)
         add_log(warning)
     return database_path 
 
@@ -148,6 +142,5 @@ def get_current_time():
 # Connect databases 
 def connect_database(filename, databases, index):
     databaseName = databases[index]        
-    print(databaseName)
     add_log(databaseName)
     return sqlite3.connect(get_database_path(filename)+databaseName) 

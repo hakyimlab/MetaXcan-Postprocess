@@ -6,7 +6,8 @@
 ## Introduction 
 + Python3 scripts used to postprocess outputs from PrediXcan and MetaXcan
 
-## Prerequisites  
+## Prerequisites
++ Compatible with both Python2.7/3, but python3 is recommended.    
 + Download latest Python3 @ <a href="https://www.continuum.io/downloads"> Anaconda </a>. 
 + Open the terminal, and type `alias python='python3.5'` to select python3 if there are multiple python versions installed     
 
@@ -36,7 +37,7 @@
 	+ .
 	+ .
 	+ column n (Breast_mammary): gene names 
-+ For example, **ovarycancer\_input\_file\_metaxcan\_postprocessing.csv** (The first word in the filename should be the name of cancer type without any space, e.g. breastcancer, lungcancer etc) 
++ For example, **ovarycancer\_input\_file\_metaxcan\_postprocessing.csv** (The first word in the filename should be the name of diseases without any space, e.g. breastcancer, diabites etc) 
 
 |  | databases | CrossTissue | TW_Adipose-Subcutaneous | TW_Breast-MammaryTissue | TW_Ovary |
 |----|---------|-------|-----------------|---------------|-----------|
@@ -57,7 +58,7 @@
  ```./run.sh <your input file name>``` 
 
 ## Output 
-+ Automatically create two new directories: 
++ Automatically create two new directories which are used to save log and results: 
 
  + `<dir>/log/` - For log
 

@@ -7,8 +7,6 @@ try:
     import os, pandas, sqlite3, glob
 except Exception as e: 
     warning = "Please download latest python3 and modules at https://www.continuum.io/downloads "
-    print(warning)
-    print(e)
     add_log(warning)
     add_log(e)
 
@@ -44,13 +42,10 @@ class TopGeneListSnps(object):
             input = pandas.read_csv(input_file_path)
             if not os.path.exists(input_file_path):
                 msg = 'please double check there is input file in the path: %s' %input_file_path 
-                print(msg)
                 add_log(msg)
         except Exception as e:
             msg = "Errors in reading: %s" %input_file_path 
-            print(msg)
             add_log(msg)
-            print(e) 
             add_log(e) 
 
         # Get tissue names (2nd to last)
@@ -61,24 +56,20 @@ class TopGeneListSnps(object):
         self.databases = input[headers[0]]
         self.databases = self.databases.dropna() # Remove empty elements  
 
-        print(LINE)  
         add_log(LINE)
         msg_tissue = "A list of tissues: "
-        print(msg_tissue)
         add_log(msg_tissue)
 
 
         # Fetch a list of genes from input file  
         for i in range(len(self.tissue_names)):
 
-            print (self.tissue_names[i])  # Print tissue names 
             add_log(self.tissue_names[i])
 
             genes = input[self.tissue_names[i]]
             genes = genes.dropna()    # Remove empty elements
             self.gene_lists.append(genes)
 
-        print(LINE)
         add_log(LINE)  
 
     # Fetch top gene list with snps from databases 

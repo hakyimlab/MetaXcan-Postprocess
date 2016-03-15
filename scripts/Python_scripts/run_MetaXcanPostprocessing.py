@@ -7,8 +7,6 @@ from MetaXcanPostprocessing import *
 if len(sys.argv) != 3:
     hints1 = "Syntax: "
     hints2 = "    python run_MetaXcanPostprocessing.py <gene_list_file> <log_file>"
-    print(hints1)
-    print(hints2) 
     add_log(hints1)  
     add_log(hints2) 
     exit()

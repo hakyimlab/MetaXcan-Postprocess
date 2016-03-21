@@ -28,7 +28,7 @@ databases = []
 
 # Create a log file path 
 def get_log_path(filename):  
-    log_path = get_current_path() + "/log/" + get_cancer_name(filename) + "/"
+    log_path = get_current_path() + "/log/" + get_project_name(filename) + "/"
     if not os.path.exists(log_path): 
         os.makedirs(log_path)
     return log_path
@@ -62,10 +62,11 @@ def finish_metaxcan_postprocessing(filename):
 def pre_message(partName):
     messages = [] 
     messages.append(LINE)
-    messages.append('- Getting started in MetaXcan postprocessing -- %s- ' %partName)
+    messages.append('- Getting started MetaXcan postprocessing -- %s- ' %partName)
     messages.append(LINE)
     for msg in messages:
-        add_log(msg)
+        # add_log(msg)
+        pass 
 
 # Conclusion messages 
 def post_message(filename):
@@ -74,9 +75,10 @@ def post_message(filename):
     messages.append('output: %s' % get_out_put_file(filename))
     messages.append(LINE)
     messages.append("Done!\n")
-    messages.append('@' + datetime.now().strftime('%H:%M:%S \n%Y/%m/%d\n'))
+    messages.append('@' + datetime.now().strftime('%H:%M:%S %Y/%m/%d\n'))
     for msg in messages:
-        add_log(msg)
+        # add_log(msg)
+        pass 
 
 # Close log 
 def finish_log():
@@ -91,22 +93,31 @@ def finish_log():
 
 # Output file path 
 def get_out_path(filename):
-    out_path = get_current_path() + "/out/" + get_cancer_name(filename) + "/"
+    out_path = get_current_path() + "/out/" + get_project_name(filename) + "/"
     if not os.path.exists(out_path): 
         os.makedirs(out_path)
     return out_path
 
 # Output file path with file name 
 def get_out_put_file(filename):
-    return "%s%s%s%s"%(get_out_path(filename), get_current_time(), get_cancer_name(filename), OUTPUT_POSTFIX)  
+    return "%s%s%s"%(get_out_path(filename), filename, OUTPUT_POSTFIX)  
 
 # Input file path with file name 
 def get_input_path(filename, tag):  # tag - such as .csv 
-    input_path = get_current_path() + "/input/" + filename + tag 
+    input_path = get_current_path() + "/annotate/"+ filename + tag 
     if not os.path.exists(input_path): 
         warning = "Please make sure that you have an input folder with input files"
         add_log(warning)
-    add_log('Input: %s' %input_path)
+    # add_log('Input: %s' %input_path)
+    return input_path
+
+# Input file path without file name 
+def get_input_path_without_filename():
+    input_path = get_current_path() + "/input/"
+    if not os.path.exists(input_path): 
+        warning = "Please make sure that you have an input folder with input files"
+        add_log(warning)
+    # add_log('Input: %s' %input_path)
     return input_path
 
 # Database file path 
@@ -127,7 +138,7 @@ def get_current_path():
 ######################################
 
 # Current cancer name 
-def get_cancer_name(filename):
+def get_project_name(filename):
     return filename.split("_")[0]
 
 # Current time 
@@ -142,5 +153,7 @@ def get_current_time():
 # Connect databases 
 def connect_database(filename, databases, index):
     databaseName = databases[index]        
-    add_log(databaseName)
+    add_log('FETCHING SNPs: ' + databaseName)
     return sqlite3.connect(get_database_path(filename)+databaseName) 
+
+

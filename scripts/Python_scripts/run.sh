@@ -2,9 +2,9 @@
 # Helper bash script that launches run_MetaXcanPostprocessing file 
 
 if [ -z $1 ]; then
-    echo "Usage: ./run.sh <input_file_name>"
-    echo "(but do not include the file extension such as .csv"
+    echo "Usage: ./run.sh <project name>"
+    echo "(only one word, such as breastcancer, diabetase, ovarycancer)"
 
 else
-    python run_MetaXcanPostprocessing.py $1 $1.log
+    python run_MetaXcanPostprocessing.py $1
 fi

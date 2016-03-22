@@ -20,6 +20,8 @@ current_logs = None
 LINE =  '-----------------------------------------------------------------------------------'
 OUTPUT_POSTFIX = '_output_file_metaxcan_postprocessing.csv'
 SQL_QUERY_PREFIX = "select e.genename, w.rsid from weights w join extra e on w.gene = e.gene where e.genename = '"
+SQL_QUERY_PREFIX_DNG = "select gene, rsid from weights where gene = '"
+
 databases = [] 
 
 ###################

@@ -61,7 +61,10 @@ def annotate_metaxcan_result():
         robjects.globalenv['dataframe'] = grch37
 
         # annotate GWAS data 
-        annotatedData = r("inner_join(data[, c('gene', 'gene_name', 'zscore', 'pvalue', 'model_n')], grch37[, c('ensgene', 'chr', 'start', 'end')], by =c('gene'='ensgene'))")
+        if inputFilename == 'DGN-WB-unscaled.csv':
+            annotatedData = r("inner_join(data[, c('gene', 'gene_name', 'zscore', 'pvalue', 'model_n')], grch37[, c('symbol', 'chr', 'start')], by=c('gene'='symbol'))")
+        else:
+            annotatedData = r("inner_join(data[, c('gene', 'gene_name', 'zscore', 'pvalue', 'model_n')], grch37[, c('ensgene', 'chr', 'start')], by =c('gene'='ensgene'))")
         annotatedData = annotatedData.drop_duplicates()
 
         # ouput annotated data 
@@ -80,6 +83,7 @@ def qqplot(projectName):
     # load module 
     qqman = importr('qqman')
 
+    # for snps data set 
     # set up file path 
     currentPath = get_current_path()
     outputPath = os.getcwd() + '/out/' + projectName + '/QQ-Plot'
@@ -88,26 +92,128 @@ def qqplot(projectName):
     filePath = os.getcwd() + '/out/' + projectName 
     os.chdir(filePath)
 
+
     # get file lists 
     outputFileList = glob.glob("*.csv")
 
+    dfList8 = []
+    for outputFileName in outputFileList: 
+        # get GWAS output data 
+        print("CONCATING FILE: " + outputFileName)
+        r("data <- read.csv('%s')" %outputFileName)
+        data = r('data <- na.omit(data)')
+        robjects.globalenv['dataframe'] = data
+        dfList8.append(data)
+    concatDf8 = pandas.concat(dfList8, axis = 0)
+
+    #output data 
+    mergedOutputPath = currentPath + '/out/' + projectName + '/merged/'
+    if not os.path.exists(mergedOutputPath): 
+         os.makedirs(mergedOutputPath)
+    concatDf8.to_csv(mergedOutputPath + 'merged.csv', index = None)
+    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+
+    
     # loop through file lists 
     for outputFileName in outputFileList: 
-        print("QQ-PLOT: " + outputFileName)
+        print("QQ-PLOT(snps): " + outputFileName)
 
         # get GWAS output data 
         r("data <- read.csv('%s')" %outputFileName)
-        data = r('na.omit(data)')
+        data = r('data <- na.omit(data)')
         robjects.globalenv['dataframe'] = data
+
         os.chdir(outputPath)
 
         # draw qq-plot and save them to files 
-        r.png('%s%s'%(outputFileName[:-4],'.png'), width=300, height=300)
+        r.png('%s%s%s'%('QQ-Plot_', outputFileName[:-4],'.png'))
         qqman.qq(data['pvalue'],  main = "Q-Q plot of GWAS p-values")
         r['dev.off']()
         os.chdir(filePath)
 
         print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+    print("QQ-PLOT(snps): " + "merged.csv")
+
+    # get GWAS output data 
+    os.chdir(mergedOutputPath)
+    r("data8 <- read.csv('merged.csv')")
+    data8 = r('data8 <- na.omit(data)')
+    robjects.globalenv['dataframe'] = data8
+
+    os.chdir(outputPath)
+
+    # draw qq-plot and save them to files 
+    r.png('%s%s%s'%('QQ-Plot_', outputFileName[:-4],'.png'))
+    qqman.qq(data['pvalue'],  main = "Q-Q plot of GWAS p-values")
+    r['dev.off']()
+    os.chdir(filePath)
+
+    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+    # for without snps data set 
+    # set up file path 
+    outputPathWithoutSNPs = currentPath + '/input/annotate' +'/QQ-Plot'
+    if not os.path.exists(outputPathWithoutSNPs): 
+         os.makedirs(outputPathWithoutSNPs)
+    filePathWithoutSNPs = currentPath + '/input/annotate/'
+    os.chdir(filePathWithoutSNPs)
+
+    # get file lists 
+    outputFileListWithoutSNPs = glob.glob("*.csv")
+
+    dfListWithoutSNPs = []
+    for outputFileName in outputFileListWithoutSNPs: 
+        # get GWAS output data 
+        print("CONCATING FILE: " + outputFileName)
+        r("data <- read.csv('%s')" %outputFileName)
+        data = r('data <- na.omit(data)')
+        robjects.globalenv['dataframe'] = data
+        dfListWithoutSNPs.append(data)
+    concatDfWithoutSNPs = pandas.concat(dfListWithoutSNPs, axis = 0)
+
+    #output data 
+    mergedpath = filePathWithoutSNPs + 'merged/'
+    if not os.path.exists(mergedpath): 
+        os.makedirs(mergedpath)
+    concatDfWithoutSNPs.to_csv(mergedpath + 'mergedWithoutSNPs.csv', index = None)
+    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+    # loop through file lists 
+    for outputFileName in outputFileListWithoutSNPs: 
+        print("QQ-PLOT(no snps): " + outputFileName)
+
+        # get GWAS output data 
+        r("data <- read.csv('%s')" %outputFileName)
+        data = r('data <- na.omit(data)')
+        robjects.globalenv['dataframe'] = data
+        os.chdir(outputPathWithoutSNPs)
+
+        # draw qq-plot and save them to files 
+        r.png('%s%s%s'%('QQ-Plot_', outputFileName[:-4],'.png'))
+        qqman.qq(data['pvalue'],  main = "Q-Q plot of GWAS p-values")
+        r['dev.off']()
+        os.chdir(filePathWithoutSNPs)
+
+        print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+    print("QQ-PLOT(no snps): " + "mergedWithoutSNPs.csv")
+
+    # get GWAS output data 
+    os.chdir(filePathWithoutSNPs + 'merged/')
+    r("data <- read.csv('mergedWithoutSNPs.csv')")
+    data = r('data <- na.omit(data)')
+    robjects.globalenv['dataframe'] = data
+    os.chdir(outputPathWithoutSNPs)
+
+    # draw qq-plot and save them to files 
+    r.png('%s%s%s'%('QQ-Plot_', 'mergedWithoutSNPs', '.png'))
+    qqman.qq(data['pvalue'],  main = "Q-Q plot of GWAS p-values")
+    r['dev.off']()
+    os.chdir(filePathWithoutSNPs)
+
+    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
 
 ###########################
@@ -118,8 +224,10 @@ def manhattan(projectName):
     # load module 
     qqman = importr('qqman')
 
-    # set up file path 
     currentPath = get_current_path()
+
+    # for snps data set 
+    # set up file path 
     outputPath = os.getcwd() + '/out/' + projectName +'/Manhattan-Plot'
 
     if not os.path.exists(outputPath): 
@@ -133,22 +241,144 @@ def manhattan(projectName):
 
     # loop through file lists 
     for outputFileName in outputFileList: 
-        print("MANHATTAN-PLOT: " + outputFileName)
+        print("MANHATTAN-PLOT(snps): " + outputFileName)
 
         # get GWAS output data 
         r("data <- read.csv('%s')" %outputFileName)
-        data = r('na.omit(data)')
+        r('data$chr <- as.numeric(as.character(data$chr))')
+        data = r('data <- na.omit(data)')
         robjects.globalenv['dataframe'] = data
 
         os.chdir(outputPath)
 
         # draw manhattan and save them to files 
-        r.png('%s%s'%(outputFileName[:-4], '.png'), width=300, height=300)
+        r.png('%s%s%s'%('Manhattan-Plot_', outputFileName[:-4], '.png'))
         qqman.manhattan(data, chr = 'chr', bp='start', p='pvalue', snp='rsid', main = 'Manhattan plot')
         r['dev.off']()
         os.chdir(filePath)
 
         print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+    print("MANHATTAN-PLOT(snps): " + 'merged.csv')
+
+    # get GWAS output data 
+    os.chdir(filePath + '/merged/')
+    r("data8 <- read.csv('merged.csv')")
+    r('data8$chr <- as.numeric(as.character(data8$chr))')
+    data8 = r('data8 <- na.omit(data8)')
+    robjects.globalenv['dataframe'] = data8
+
+    os.chdir(outputPath)
+
+    # draw manhattan and save them to files 
+    r.png('%s%s%s'%('Manhattan-Plot_', 'merged.csv', '.png'))
+    qqman.manhattan(data, chr = 'chr', bp='start', p='pvalue', snp='rsid', main = 'Manhattan plot')
+    r['dev.off']()
+    os.chdir(filePath)
+
+    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+
+    # for raw data set without snps  
+    outputPathWithoutSNPs = currentPath + '/input/annotate' +'/Manhattan-Plot'
+
+    if not os.path.exists(outputPathWithoutSNPs): 
+         os.makedirs(outputPathWithoutSNPs)
+    filePathWithoutSNPs = currentPath + '/input/annotate/'
+    os.chdir(filePathWithoutSNPs)
+
+    # get file lists 
+    outputFileListWithoutSNPs = glob.glob("*.csv")
+
+    # loop through file lists 
+    for outputFileName in outputFileListWithoutSNPs: 
+        print("MANHATTAN-PLOT(no snps): " + outputFileName)
+
+        # get GWAS output data 
+        r("data <- read.csv('%s')" %outputFileName)
+        r('data$chr <- as.numeric(as.character(data$chr))')
+        data = r('data <- na.omit(data)')
+        robjects.globalenv['dataframe'] = data
+
+        os.chdir(outputPathWithoutSNPs)
+
+        # draw manhattan and save them to files 
+        r.png('%s%s%s'%('Manhattan-Plot_', outputFileName[:-4], '.png'))
+        qqman.manhattan(data, chr = 'chr', bp='start', p='pvalue', snp='rsid', main = 'Manhattan plot')
+        r['dev.off']()
+        os.chdir(filePathWithoutSNPs)
+
+        print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+    print("MANHATTAN-PLOT(no snps): " + "mergedWithoutSNPs.csv")
+
+    # get GWAS output data 
+    os.chdir(filePathWithoutSNPs + 'merged/')
+    r("data <- read.csv('mergedWithoutSNPs.csv')")
+    r('data$chr <- as.numeric(as.character(data$chr))')
+    data = r('data <- na.omit(data)')
+    robjects.globalenv['dataframe'] = data
+
+    os.chdir(outputPathWithoutSNPs)
+
+    # draw manhattan and save them to files 
+    r.png('%s%s%s'%('Manhattan-Plot_', 'mergedWithoutSNPs.csv', '.png'))
+    qqman.manhattan(data, chr = 'chr', bp='start', p='pvalue', snp='rsid', main = 'Manhattan plot')
+    r['dev.off']()
+    os.chdir(filePathWithoutSNPs)
+
+    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+###########################
+####   Top Gene List  #####
+########################### 
+
+def sortTopGeneList(projectName):
+
+    currentPath = get_current_path()
+
+    os.chdir(currentPath + '/input/annotate/')
+
+    fileList = glob.glob("*.csv")
+
+    out_path = currentPath + '/input/annotate/sorted/'
+    if not os.path.exists(out_path): 
+        os.makedirs(out_path)
+
+    dfList = []
+    for filename in fileList:
+        print("TOP GENE LIST: " + filename)
+        df = pandas.read_csv(filename) 
+
+        # sort data by defined column 
+        df.sort_values(['pvalue', 'model_n'], ascending=[1, 0], inplace=True)
+        total_rows = df.shape[0] # number of row count shape[1] is number of col count 
+        cut_off = 0.05/total_rows 
+        top_gene_list = df[df['pvalue'] < cut_off]
+        top_gene_list.drop('gene', axis=1, inplace=True)
+
+        #output data 
+        top_gene_list.to_csv(out_path + filename, index = None)
+
+        dfList.append(top_gene_list)
+
+        print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+    print("TOP GENE LIST: " + "sortedTopGenesAllTissues.csv")
+    concatDf = pandas.concat(dfList, axis = 0)
+
+    # sort data by defined column 
+    concatDf.sort_values(['pvalue', 'model_n'], ascending=[1, 0], inplace=True)
+
+    #output data 
+    concatDf.to_csv(out_path + 'sortedTopGenesAllTissues.csv', index = None)
+
+
+    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+
+
+
 
 
 

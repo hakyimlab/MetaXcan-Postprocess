@@ -14,19 +14,15 @@ current_path = os.getcwd()
 
 # Run metaxcan postprocessing 
 
-##############################
-#### Part one: Annotation ####
-##############################
+#############################
+### Part one: Annotation ####
+#############################
 
 # Annotated files
 print (LINE)
 print ('      Getting started MetaXcan postprocessing -- Part one: Annotating genes ')
 print (LINE)
 annotate_metaxcan_result()
-
-inputFileList = glob.glob("*.csv")
-
-os.chdir(current_path)
 
 
 #################################
@@ -36,6 +32,10 @@ os.chdir(current_path)
 print (LINE)
 print ('      Getting started MetaXcan postprocessing -- Part two: Fetching gene SNPs  ')
 print (LINE)
+
+inputFileList = glob.glob("*.csv")
+
+os.chdir(current_path)
 
 for inputFileName in inputFileList: 
     inputName = inputFileName[:-4]
@@ -70,6 +70,7 @@ print (LINE)
 print ('      Getting started MetaXcan postprocessing -- Part three: QQ-Plot  ')
 print (LINE)
 
+os.chdir(current_path)
 qqplot(sys.argv[1]) 
 
 
@@ -83,5 +84,17 @@ print (LINE)
 
 os.chdir(current_path)
 manhattan(sys.argv[1])
+
+
+###################################
+#### Part five: Top gene list  ####
+###################################
+
+print (LINE)
+print ('      Getting started MetaXcan postprocessing -- Part five: Top gene list  ')
+print (LINE)
+
+os.chdir(current_path)
+sortTopGeneList(sys.argv[1])
 
 

@@ -3,11 +3,10 @@
 
 try: 
     from helpers import * 
-    from R2Python import * 
     from datetime import datetime 
     import os, pandas, sqlite3, glob
 except Exception as e: 
-    warning = "Please download latest python3 and modules at https://www.continuum.io/downloads "
+    warning = "Please download latest python3 and appropriate modules at https://www.continuum.io/downloads "
     add_log(warning)
     add_log(e)
 
@@ -39,6 +38,7 @@ class TopGeneListSnps(object):
 
         # Set up current and input file path  
         input_file_path = currentPath + '/input/' + 'annotate/' + filename + '.csv'
+        # print(input_file_path)
 
         # Read input file and fetch gene list 
         try:
@@ -47,6 +47,7 @@ class TopGeneListSnps(object):
                 msg = 'please double check there is input file in the path: %s' %input_file_path 
                 add_log(msg)
             self.gene_lists = self.input['gene_name']  
+            # print(self.gene_lists)
         except Exception as e:
             msg = "Errors in reading: %s" %input_file_path 
             add_log(msg)
@@ -73,7 +74,11 @@ class TopGeneListSnps(object):
                 # Get a list of full query 
                 full_query_name_list = []
                 for k in range(len(self.gene_lists)):
-                    full_query_name = SQL_QUERY_PREFIX + self.gene_lists[k] + "'"
+                    # print(self.databases[i])
+                    if self.databases[i] == 'DGN-WB-unscaled_0.5.db':
+                        full_query_name = SQL_QUERY_PREFIX_DNG + self.gene_lists[k] + "'"
+                    else: 
+                        full_query_name = SQL_QUERY_PREFIX + self.gene_lists[k] + "'"
                     full_query_name_list.append(full_query_name)
 
                 # Looping through all genes
@@ -82,7 +87,7 @@ class TopGeneListSnps(object):
                     query_output = pandas.read_sql(full_query_name_list[m], conn, index_col=None)
 
                     # Add correspinding parameters to the new output file 
-                    query_output['tissue'] = filename[:-25]
+                    query_output['tissue'] = filename[:-10]
                     query_output['pvalue'] =  self.input['pvalue'][m]
                     query_output['zscore'] =  self.input['zscore'][m]
                     query_output['model_n'] = self.input['model_n'][m]

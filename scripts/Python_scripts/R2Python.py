@@ -329,9 +329,9 @@ def manhattan(projectName):
 
     print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
-###########################
-####   Top Gene List  #####
-########################### 
+######################################
+####   Top Gene List without SNPs ####
+###################################### 
 
 def sortTopGeneList(projectName):
 
@@ -347,7 +347,7 @@ def sortTopGeneList(projectName):
 
     dfList = []
     for filename in fileList:
-        print("TOP GENE LIST: " + filename)
+        print("TOP GENE LIST (no snps): " + filename)
         df = pandas.read_csv(filename) 
 
         # sort data by defined column 
@@ -355,7 +355,8 @@ def sortTopGeneList(projectName):
         total_rows = df.shape[0] # number of row count shape[1] is number of col count 
         cut_off = 0.05/total_rows 
         top_gene_list = df[df['pvalue'] < cut_off]
-        top_gene_list.drop('gene', axis=1, inplace=True)
+        # top_gene_list.drop('gene', axis=1, inplace=True)
+        print('CALCULATING cut_off p-Value: ' + str(cut_off))
 
         #output data 
         top_gene_list.to_csv(out_path + filename, index = None)
@@ -364,7 +365,56 @@ def sortTopGeneList(projectName):
 
         print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
-    print("TOP GENE LIST: " + "sortedTopGenesAllTissues.csv")
+    print("TOP GENE LIST(all without snps): " + "sortedTopGenesAllTissues.csv")
+    concatDf = pandas.concat(dfList, axis = 0)
+
+    # sort data by defined column 
+    concatDf.sort_values(['pvalue', 'model_n'], ascending=[1, 0], inplace=True)
+
+    #output data 
+    concatDf.to_csv(out_path + 'sortedTopGenesAllTissues.csv', index = None)
+
+
+    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+
+####################################
+####   Top Gene List with SNPs #####
+#################################### 
+
+def sortTopGeneListWithSNPs(projectName):
+
+    currentPath = get_current_path()
+
+    os.chdir(currentPath + '/out/' + projectName)
+
+    fileList = glob.glob("*.csv")
+
+    out_path = currentPath + '/out/' + projectName + '/sorted/'
+    if not os.path.exists(out_path): 
+        os.makedirs(out_path)
+
+    dfList = []
+    for filename in fileList:
+        print("TOP GENE LIST (snps): " + filename)
+        df = pandas.read_csv(filename) 
+
+        # sort data by defined column 
+        df.sort_values(['pvalue', 'model_n'], ascending=[1, 0], inplace=True)
+        total_rows = df.shape[0] # number of row count shape[1] is number of col count 
+        cut_off = 0.05/total_rows 
+        top_gene_list = df[df['pvalue'] < cut_off]
+        # top_gene_list.drop('gene', axis=1, inplace=True)
+        print('CALCULATING cut_off p-Value: ' + str(cut_off))
+
+        #output data 
+        top_gene_list.to_csv(out_path + filename, index = None)
+
+        dfList.append(top_gene_list)
+
+        print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+
+    print("TOP GENE LIST(all with snps): " + "sortedTopGenesAllTissues.csv")
     concatDf = pandas.concat(dfList, axis = 0)
 
     # sort data by defined column 

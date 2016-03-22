@@ -86,15 +86,27 @@ os.chdir(current_path)
 manhattan(sys.argv[1])
 
 
-###################################
-#### Part five: Top gene list  ####
-###################################
+###############################################
+#### Part five: Top gene list without SNPs ####
+###############################################
 
 print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part five: Top gene list  ')
+print ('      Getting started MetaXcan postprocessing -- Part five: Top gene list without SNPs ')
 print (LINE)
 
 os.chdir(current_path)
 sortTopGeneList(sys.argv[1])
+
+
+############################################
+#### Part Six: Top gene list with SNPs  ####
+############################################
+
+print (LINE)
+print ('      Getting started MetaXcan postprocessing -- Part six: Top gene list with SNPs ')
+print (LINE)
+
+os.chdir(current_path)
+sortTopGeneListWithSNPs(sys.argv[1])
 
 

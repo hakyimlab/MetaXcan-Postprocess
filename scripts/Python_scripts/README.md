@@ -23,9 +23,10 @@
  + `README.md` - A brief description about this software package 
 
 ## Setup 
-+ If `run.sh` is not excutable, run ```chmod+x run.sh``` first  to make it executable 
-+ Download all database files (*.db) into the directory `<dir>/databases` 
-+ Place MetaXcan raw results (*.csv) into this directory `<dir>/input`
++ If `run.sh` is not excutable, run ```chmod+x run.sh``` first  to make it executable
++ The `<dir>/databases` folder has one demo database file, and the `<dir>/input` fold has one demo corresponding MetaXcan raw results. You can run demo with these two files. 
++ Download <a href = "https://app.box.com/s/gujt4m6njqjfqqc9tu0oqgtjvtz9860w"> database files </a> into the directory `<dir>/databases` 
++ Move all your MetaXcan raw results (*.csv) into this directory `<dir>/input`
 
 ## Run 
 + Open the terminal, and execute the `run.sh` script by typing:

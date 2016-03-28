@@ -1,5 +1,9 @@
 #! /usr/bin/env python
 __author__ = 'heroico'
+
+########################################################################################################################
+# Gathers some figures that go into MEtaXcan's calculation for a given gene
+
 import logging
 import os
 import numpy

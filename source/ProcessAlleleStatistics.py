@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 __author__ = 'heroico'
 
+########################################################################################################################
+# Gathers statistics on allele information.
+# Produces a csv with the following columns:
+# rsid,chromosome,wdb_ref_allele,wdb_eff_allele,legend_ref_allele,legend_eff_allele,legend_type,gwas_ref_allele,gwas_eff_allele,gwas_OR_BETA
+#
+# TODO: needs maintenance
+
 import logging
 import os
 import metax.ThousandGenomesUtilities as ThousandGenomesUtilities

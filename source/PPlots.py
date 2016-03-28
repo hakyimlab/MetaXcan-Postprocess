@@ -1,5 +1,11 @@
 #! /usr/bin/env python
 
+########################################################################################################################
+# This script runs metaxcan for three different populations,
+# and builds a grid of plots comparing populations against each other.
+#
+# TODO: add argparse?
+
 import os
 from subprocess import call
 import logging

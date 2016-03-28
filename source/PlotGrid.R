@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+########################################################################################################################
+# R script that takes sets od Predican's results and compares it to a Metaxcan's results.
+# the point is to compare sets of results with matching populations and Tissue models.
+
 library(ggplot2)
 library(dplyr)
 library(argparse)

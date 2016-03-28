@@ -1,5 +1,8 @@
 #!/usr/bin/env Rscript
 
+########################################################################################################################
+# Plots comparison of predixcan and metaxcan's result.s Depends on PostProcessData.py's output
+
 library(argparse)
 
 parser <- ArgumentParser(description='Plot and compare against pure predixcan')

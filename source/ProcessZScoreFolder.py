@@ -96,7 +96,7 @@ class ProcessFiles(object):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='Build betas from GWAS data.')
+    parser = argparse.ArgumentParser(description='Batch processing of metaxcan results in a folder')
 
     parser.add_argument("--input_folder",
                         help="name of folder with zscore files",

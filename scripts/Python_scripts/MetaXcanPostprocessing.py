@@ -67,9 +67,9 @@ class TopGeneListSnps(object):
     def fetchTopGeneList(self, filename):
         # Loop through databases 
         for i in range(len(self.databases)):
-            if filename[:-10] in self.databases[i]: 
+            if filename[:-21] in self.databases[i]: 
                 # Connect databases 
-                conn = connect_database(filename[:-10], self.databases, i)
+                conn = connect_database(filename[:-21], self.databases, i)
 
                 # Get a list of full query 
                 full_query_name_list = []
@@ -86,13 +86,18 @@ class TopGeneListSnps(object):
                 for m in range(len(full_query_name_list)):
                     query_output = pandas.read_sql(full_query_name_list[m], conn, index_col=None)
 
+                    if self.databases[i] == 'DGN-WB-unscaled_0.5.db':
+                        query_output.rename(columns={'gene':'genename'}, inplace=True) 
+
                     # Add correspinding parameters to the new output file 
-                    query_output['tissue'] = filename[:-10]
+                    query_output['tissue'] = filename[:-21]
                     query_output['pvalue'] =  self.input['pvalue'][m]
                     query_output['zscore'] =  self.input['zscore'][m]
                     query_output['model_n'] = self.input['model_n'][m]
+                    query_output['pred_perf_R2'] = self.input['pred_perf_R2'][m] 
                     query_output['chr'] = self.input['chr'][m]  
                     query_output['start'] = self.input['start'][m] 
+                    query_output['end'] = self.input['end'][m] 
                     query_output_list.append(query_output) 
 
                 # Merge output data 

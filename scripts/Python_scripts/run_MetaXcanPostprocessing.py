@@ -109,4 +109,26 @@ print (LINE)
 os.chdir(current_path)
 sortTopGeneListWithSNPs(sys.argv[1])
 
+####################################
+#### Part Seven: Bubble plots   ####
+####################################
+
+print (LINE)
+print ('      Getting started MetaXcan postprocessing -- Part seven: Bubble plot ')
+print (LINE)
+
+os.chdir(current_path)
+bubbleplot(sys.argv[1])
+
+####################################
+#### Part Eight: region plots   ####
+####################################
+
+print (LINE)
+print ('      Getting started MetaXcan postprocessing -- Part eight: Region plot ')
+print (LINE)
+
+os.chdir(current_path)
+regionplot(sys.argv[1])
+
 

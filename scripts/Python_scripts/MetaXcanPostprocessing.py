@@ -68,18 +68,23 @@ class TopGeneListSnps(object):
         # Loop through databases 
         for i in range(len(self.databases)):
             if filename[:-21] in self.databases[i]: 
+                # print(filename[:-21])
                 # Connect databases 
                 conn = connect_database(filename[:-21], self.databases, i)
+                # print(filename[:-21])
+
 
                 # Get a list of full query 
                 full_query_name_list = []
                 for k in range(len(self.gene_lists)):
                     # print(self.databases[i])
+                    # print(self.gene_lists[k])
                     if self.databases[i] == 'DGN-WB-unscaled_0.5.db':
                         full_query_name = SQL_QUERY_PREFIX_DNG + self.gene_lists[k] + "'"
                     else: 
                         full_query_name = SQL_QUERY_PREFIX + self.gene_lists[k] + "'"
                     full_query_name_list.append(full_query_name)
+                    # print(full_query_name)
 
                 # Looping through all genes
                 query_output_list = []
@@ -90,7 +95,14 @@ class TopGeneListSnps(object):
                         query_output.rename(columns={'gene':'genename'}, inplace=True) 
 
                     # Add correspinding parameters to the new output file 
-                    query_output['tissue'] = filename[:-21]
+                    if 'CrossTissue_elasticNet' in filename:
+                        tissue_name = filename[:-21]
+                    elif 'DGN-WB-unscaled' in filename: 
+                        tissue_name = filename [:-19]
+                    else: 
+                        tissue_name = filename[:-21]
+                        tissue_name = tissue_name[3:]
+                    query_output['tissue'] = tissue_name
                     query_output['pvalue'] =  self.input['pvalue'][m]
                     query_output['zscore'] =  self.input['zscore'][m]
                     query_output['model_n'] = self.input['model_n'][m]

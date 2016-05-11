@@ -1,6 +1,6 @@
 # A simple "main()" that loads MetaXcanPostprocessing file 
 
-import sys, os, glob 
+import sys, os, glob, subprocess
 from helpers import *
 from MetaXcanPostprocessing import * 
 from R2Python import * 
@@ -130,5 +130,22 @@ print (LINE)
 
 os.chdir(current_path)
 regionplot(sys.argv[1])
+
+######################################
+#### Part nine: locuszoom plots   ####
+######################################
+
+print (LINE)
+print ('      Getting started MetaXcan postprocessing -- Part nine: Locuszoom plot ')
+print (LINE)
+
+os.chdir(current_path)
+os.chdir('..')
+os.chdir('..')
+os.chdir('..')
+locuszoom_path = os.getcwd() + '/locuszoom/examples'
+os.chdir(locuszoom_path)
+subprocess.Popen('./run_example.py')
+
 
 

@@ -3,7 +3,6 @@
 import sys, os, glob, subprocess
 from helpers import *
 from MetaXcanPostprocessing import * 
-from R2Python import * 
 
 if len(sys.argv) != 2:
     hints1 = "Syntax: "
@@ -12,140 +11,110 @@ if len(sys.argv) != 2:
 
 current_path = os.getcwd()
 
-# Run metaxcan postprocessing 
+########################
+### Open a log fle  ####
+########################
+
+# Start up the logfile
+open_log(sys.argv[1])
+
 
 #############################
 ### Part one: Annotation ####
 #############################
 
-# Annotated files
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part one: Annotating genes ')
-print (LINE)
-annotate_metaxcan_result()
-
-
-#################################
-#### Part two: Fetching SNPs ####
-#################################
-
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part two: Fetching gene SNPs  ')
-print (LINE)
-
-inputFileList = glob.glob("*.csv")
+# start to log 
+pre_message("Part one: Annotating genes ")
 
 os.chdir(current_path)
-
-for inputFileName in inputFileList: 
-    inputName = inputFileName[:-4]
-    fullInputName = sys.argv[1] + '_' + inputName 
-    
-    # Start up the logfile
-    open_log(fullInputName)
-
-    # Init class and read .csv file 
-    snps = TopGeneListSnps(inputName, fullInputName) 
-
-    # Fetch top gene list from sqlite databases 
-    snps.fetchTopGeneList(inputName) 
-
-    # Output data
-    snps.outputTopGeneList(fullInputName) 
-
-     # Log data 
-    snps.logTopGeneList(inputName)
-
-    # Close the logfile
-    finish_log()
-
-    print(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+annotate_metaxcan_result(sys.argv[1])
 
 
-#############################
-#### Part three: QQ-Plot ####
-#############################
+###########################
+#### Part two: QQ-Plot ####
+###########################
 
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part three: QQ-Plot  ')
-print (LINE)
+# start to log 
+pre_message("Part two: QQ-Plot ")
 
 os.chdir(current_path)
 qqplot(sys.argv[1]) 
 
 
-###################################
-#### Part four: Manhattan-Plot ####
-###################################
+####################################
+#### Part three: Manhattan-Plot ####
+####################################
 
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part four: Manhattan-Plot  ')
-print (LINE)
+# start to log 
+pre_message("Part three: Manhattan-Plot  ")
 
 os.chdir(current_path)
 manhattan(sys.argv[1])
 
 
 ###############################################
-#### Part five: Top gene list without SNPs ####
+#### Part four: Top gene list without SNPs ####
 ###############################################
 
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part five: Top gene list without SNPs ')
-print (LINE)
+# start to log 
+pre_message("Part four: Top gene list without SNPs ")
 
 os.chdir(current_path)
 sortTopGeneList(sys.argv[1])
 
 
-############################################
-#### Part Six: Top gene list with SNPs  ####
-############################################
+##########################################
+## Part five: Top gene list with SNPs  ###
+##########################################
 
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part six: Top gene list with SNPs ')
-print (LINE)
+# start to log 
+pre_message("Part five: Top gene list with SNPs ")
 
 os.chdir(current_path)
 sortTopGeneListWithSNPs(sys.argv[1])
 
 ####################################
-#### Part Seven: Bubble plots   ####
+####  Part six:  Bubble plots   ####
 ####################################
 
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part seven: Bubble plot ')
-print (LINE)
+# start to log 
+pre_message("Part six:  Bubble plots ")
 
 os.chdir(current_path)
 bubbleplot(sys.argv[1])
 
 ####################################
-#### Part Eight: region plots   ####
+#### Part seven: region plots   ####
 ####################################
 
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part eight: Region plot ')
-print (LINE)
+# start to log 
+pre_message("Part seven: region plots ")
 
 os.chdir(current_path)
 regionplot(sys.argv[1])
 
 ######################################
-#### Part nine: locuszoom plots   ####
+#### Part eight: locuszoom plots  ####
 ######################################
 
-print (LINE)
-print ('      Getting started MetaXcan postprocessing -- Part nine: Locuszoom plot ')
-print (LINE)
+# start to log 
+pre_message("Part eight: locuszoom plots")
 
 os.chdir(current_path)
-os.chdir('..')
-os.chdir('..')
-os.chdir('..')
-locuszoom_path = os.getcwd() + '/locuszoom/examples'
-os.chdir(locuszoom_path)
-subprocess.Popen('./run_example.py')
+locuszoom_plot(sys.argv[1])
+
+###################################
+### write and close a log fle  ####
+###################################
+
+# write logs 
+write_logs()
+
+# close logs 
+finish_log()
+
+
+
 
 
 

@@ -3,7 +3,7 @@
 <h1 style="text-align: center;" markdown="1"> MetaXcan Post-processing </h1>
 
 ## Introduction 
-+ Python3 scripts used to postprocess outputs from PrediXcan and MetaXcan
++ A pipeline used to postprocess outputs from PrediXcan and MetaXcan
 
 ## Prerequisites
 + Compatible with both Python2.7/3, but python3 is recommended.    

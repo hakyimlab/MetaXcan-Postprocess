@@ -8,12 +8,12 @@
 ## Prerequisites
 + Compatible with both Python2.7/3, but python3 is recommended.    
 + Download latest Python3 version @ <a href="https://www.continuum.io/downloads"> Anaconda </a>.  
-+ Open the terminal, and type `alias python='python3.5'` to select python3 if there are multiple python versions installed     
++ Open the terminal, and type `alias python='python3.5'` to select python3 if there are multiple python versions installed 
 + Install the following python or R libraries: 
-   + rpy2 python module: `pip install rpy2`. See more detail about this package @ <a href="http://rpy2.readthedocs.io/en/version_2.7.x/"> rpy2 </a>
-   + annotables R package: `install.packages("devtools")`, and `devtools::install_github("stephenturner/annotables")`. See more detail about this package @ <a href="https://github.com/stephenturner/annotables#how"> annotables </a>
-   + dplyr R package: `install.packages('dplyr')`. See more detail about this package @ <a href="https://github.com/hadley/dplyr"> dplyr </a>
-   + qqman R package: 'install.packages("qqman")`. See more detail about this package @ <a href="https://github.com/stephenturner/qqman"> qqman </a>
+   + rpy2 python module: `pip install rpy2`. More detail @ <a href="http://rpy2.readthedocs.io/en/version_2.7.x/"> rpy2 </a>
+   + annotables R package: `install.packages("devtools")`, and `devtools::install_github("stephenturner/annotables")`. More detail @ <a href="https://github.com/stephenturner/annotables#how"> annotables </a>
+   + dplyr R package: `install.packages('dplyr')`. More detail @ <a href="https://github.com/hadley/dplyr"> dplyr </a>
+   + qqman R package: 'install.packages("qqman")`. More detail @ <a href="https://github.com/stephenturner/qqman"> qqman </a>
 
 ## Installation and Setup 
 + Navigate to the directory (referenced as `<dir>` thereafter) where all package files should be located. 
@@ -25,17 +25,18 @@
  + `__init__.py` - This is a marker file that marks current directory as python package directory 
  + `README.md` - A brief description about this pipline 
 + Download standalone LocusZoom <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> as `<dir>/locuszoom`
-+ Create a new fold as `<dir>/input`, and add the following files (no subfolder, only individual files). 
++ Create a new fold as `<dir>/input`, and add the following files (don't creat subfolder, only individual files). 
   + Download prediction models (`*.db`) <a href = "http://hakyimlab.org/predictdb/"> Prediction Models </a>
-  + Download plink (`plink`, discard the rest) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
+  + Download plink (only `plink` file, discard the rest) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
   + Add outputs from PrediXcan or MetaXcan analysis (`*.csv`) 
   + Add locuszoom input file (`gwas_snp.txt`, other names won't work). The text file (tab-delimited) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>
-      MarkerName | P-value
-    ------------ | -------------
-    rs1 | 0.087
-    rs2 | 1.2e-09
-  + Add batch-model file (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> 
+      MarkerName |	P-value
+      ---- | -----
+      rs1	|  0.423
+      rs2 |	1.23e-04
+      rs3 |	9.4e-390
 
+  + Add batch-model file (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> 
     snp | chr | start | stop | flank | run | m2zargs
     ---- | --- | ---- | ---- | ----- | ---- | ------
     rs7983146 | NA | NA | NA | 500kb | yes | title="My favorite SNP"
@@ -45,7 +46,7 @@
 
 ## Run 
 + Open the terminal, and execute the `run.sh` script by typing:
- ```./run.sh <your project title>``` - your project name should be consise and a single word such as breastcancer, ovarycancer and diabetes. 
+ ```./run.sh <your project title>``` - your project name should be consise and a single word e.g. breastcancer, ovarycancer, diabetes etc
 
 ## Output 
 + Automatically create two new directories which are used to save log and results: 

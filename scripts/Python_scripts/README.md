@@ -30,6 +30,7 @@
   + Download plink (only `plink` file, discard the rest) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
   + Add outputs from PrediXcan or MetaXcan analysis (`*.csv`) 
   + Add locuszoom input file (`gwas_snp.txt`, other names won't work). The text file (tab-delimited) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>
+  
       MarkerName |	P-value
       ---- | -----
       rs1	|  0.423
@@ -37,6 +38,7 @@
       rs3 |	9.4e-390
 
   + Add batch-model file (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> 
+  
     snp | chr | start | stop | flank | run | m2zargs
     ---- | --- | ---- | ---- | ----- | ---- | ------
     rs7983146 | NA | NA | NA | 500kb | yes | title="My favorite SNP"

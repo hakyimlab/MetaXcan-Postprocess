@@ -2,36 +2,45 @@
 
 <h1 style="text-align: center;" markdown="1"> MetaXcan Post-processing </h1>
 
-| Version | Description     |
-| --------|:---------------:|
-| V1.0    | Initial version |
-| V1.1    | Add bubble and region plot |
-| V1.2    | Integrate LocusZoom plot |
-
 ## Introduction 
 + Python3 scripts used to postprocess outputs from PrediXcan and MetaXcan
 
 ## Prerequisites
 + Compatible with both Python2.7/3, but python3 is recommended.    
-+ Download latest Python3 @ <a href="https://www.continuum.io/downloads"> Anaconda </a>. 
-+ Open the terminal, and type `alias python='python3.x'` to select python3 if there are multiple python versions installed     
++ Download latest Python3 version @ <a href="https://www.continuum.io/downloads"> Anaconda </a>.  
++ Open the terminal, and type `alias python='python3.5'` to select python3 if there are multiple python versions installed     
++ Install the following python or R libraries: 
+   + rpy2 python module: `pip install rpy2`. See more detail about this package @ <a href="http://rpy2.readthedocs.io/en/version_2.7.x/"> rpy2 </a>
+   + annotables R package: `install.packages("devtools")`, and `devtools::install_github("stephenturner/annotables")`. See more detail about this package @ <a href="https://github.com/stephenturner/annotables#how"> annotables </a>
+   + dplyr R package: `install.packages('dplyr')`. See more detail about this package @ <a href="https://github.com/hadley/dplyr"> dplyr </a>
+   + qqman R package: 'install.packages("qqman")`. See more detail about this package @ <a href="https://github.com/stephenturner/qqman"> qqman </a>
 
 ## Installation and Setup 
 + Navigate to the directory (referenced as `<dir>` thereafter) where all package files should be located. 
-+ Download this pipline in `<dir>/MetaXcan-Postprocess`:  
++ Download this pipline as `<dir>/MetaXcan-Postprocess`:  
  + `run.sh` - Helper bash script that launches run_MetaXcanPostprocessing file 
  + `run_MetaXcanPostprocessing.py` - A simple "main()" that loads `MetaXcanPostprocessing.py` and `run_locuszoom` file
  + `MetaXcanPostprocessing.py` - This is where all post-processing work will be, such as output annotation, manhattan plot, qqplot, retion plot, bubble plot, locuszoom plot, top genes with and without corresponding SNPs.   
  + `helpers.py` - This contains all helper functions that can be used through post-processing   
  + `__init__.py` - This is a marker file that marks current directory as python package directory 
  + `README.md` - A brief description about this pipline 
-+ Download standalone LocusZoom <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> in `<dir>/locuszoom`
-+ Create a new fold as `<dir>/input`, and add the following files (no subfold, only individual files). 
++ Download standalone LocusZoom <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> as `<dir>/locuszoom`
++ Create a new fold as `<dir>/input`, and add the following files (no subfolder, only individual files). 
   + Download prediction models (`*.db`) <a href = "http://hakyimlab.org/predictdb/"> Prediction Models </a>
   + Download plink (`plink`, discard the rest) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
   + Add outputs from PrediXcan or MetaXcan analysis (`*.csv`) 
-  + Add locuszoom input file (`gwas_snp.txt`, don't use differen file name). The text file (tab-delimited) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>
-  + Add batch-model file (`batch_locuszoom.txt`, don't use differen file name). The text file (tab-delimited) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> 
+  + Add locuszoom input file (`gwas_snp.txt`, other names won't work). The text file (tab-delimited) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>
+      MarkerName | P-value
+    ------------ | -------------
+    rs1 | 0.087
+    rs2 | 1.2e-09
+  + Add batch-model file (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> 
+
+    snp | chr | start | stop | flank | run | m2zargs
+    ---- | --- | ---- | ---- | ----- | ---- | ------
+    rs7983146 | NA | NA | NA | 500kb | yes | title="My favorite SNP"
+    TCF7L2 | NA | NA | NA | 1.25MB | yes | title="TCF7L2 Region" showRecomb=F
+    rs7957197 | 12 | 119503590 | 120322280 | NA | yes | showAnnot=F
 
 
 ## Run 

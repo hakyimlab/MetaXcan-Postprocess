@@ -1,4 +1,4 @@
-''' This script wraps R packages such as annotables and qqman in python environment using rpy2 '''
+''' This script wraps some R packages such as annotables and qqman, or some R codes in python environment using rpy2 '''
 ''' Please see more documentation at http://rpy2.readthedocs.org/en/version_2.7.x/ ''' 
 
 
@@ -42,11 +42,10 @@ def annotate_metaxcan_result(projectName):
     # current path 
     currentPath = os.getcwd()
 
+    # back to root path 
     os.chdir('..')
     os.chdir('..')
     os.chdir('..')
-
-    # root path 
     root_path = os.getcwd()
 
     # input path 
@@ -148,11 +147,10 @@ def qqplot(projectName):
     # current path 
     currentPath = os.getcwd()
 
+    # back to root path 
     os.chdir('..')
     os.chdir('..')
     os.chdir('..')
-
-    # root path 
     root_path = os.getcwd()
 
     # annotated metaxcan file path 
@@ -182,7 +180,7 @@ def qqplot(projectName):
         r['dev.off']()
         os.chdir(annoated_files_path)
 
-    msg = "QQ-PLOT(no snps): " + "mergedWithoutSNPs.csv"
+    msg = "QQ-PLOT(no snps): " + "merged_annotated_metaxcan_output"
     add_log(msg)
 
     # set up path and read merged annotated metaxcan output files  
@@ -214,11 +212,10 @@ def manhattan(projectName):
     # current path 
     currentPath = os.getcwd()
 
+    # back to root path 
     os.chdir('..')
     os.chdir('..')
     os.chdir('..')
-
-    # root path 
     root_path = os.getcwd()
 
     # annotated metaxcan file path 
@@ -251,7 +248,7 @@ def manhattan(projectName):
         r['dev.off']()
         os.chdir(annoated_files_path)
 
-    msg = "MANHATTAN-PLOT(no snps): " + "mergedWithoutSNPs.csv"
+    msg = "MANHATTAN-PLOT(no snps): " + "merged_annotated_metaxcan_output"
     add_log(msg)
 
     # read data 
@@ -281,11 +278,10 @@ def sortTopGeneList(projectName):
     # current path 
     currentPath = os.getcwd()
 
+    # back to root path 
     os.chdir('..')
     os.chdir('..')
     os.chdir('..')
-
-    # root path 
     root_path = os.getcwd()
 
     # annotated metaxcan file path 
@@ -364,100 +360,99 @@ def sortTopGeneList(projectName):
 
 def sortTopGeneListWithSNPs(projectName):
 
-        global projectID 
+    global projectID 
 
-        # current path 
-        currentPath = os.getcwd()
+    # current path 
+    currentPath = os.getcwd()
 
-        os.chdir('..')
-        os.chdir('..')
-        os.chdir('..')
+    # back to root path 
+    os.chdir('..')
+    os.chdir('..')
+    os.chdir('..')
+    root_path = os.getcwd()
 
-        # root path 
-        root_path = os.getcwd()
+    # set up path 
+    top_genes_file_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/top_genes/'
+    os.chdir(top_genes_file_path)
 
-        # set up path 
-        top_genes_file_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/top_genes/'
-        os.chdir(top_genes_file_path)
+    # read data 
+    top_genes = pandas.read_csv('sorted_top_genes.csv')
 
-        # read data 
-        top_genes = pandas.read_csv('sorted_top_genes.csv')
+    # add into files 
+    gene_lists = top_genes['gene_name']
+    tissue_lists = top_genes['tissue']
+    pvalue_lists = top_genes['pvalue']
+    zscore_lists = top_genes['zscore']
+    model_n_lists = top_genes['model_n']
+    pred_perf_R2_lists = top_genes['pred_perf_R2']
+    chr_lists = top_genes['chr']
+    start_lists = top_genes['start']
+    end_lists = top_genes['end']
 
-        # add into files 
-        gene_lists = top_genes['gene_name']
-        tissue_lists = top_genes['tissue']
-        pvalue_lists = top_genes['pvalue']
-        zscore_lists = top_genes['zscore']
-        model_n_lists = top_genes['model_n']
-        pred_perf_R2_lists = top_genes['pred_perf_R2']
-        chr_lists = top_genes['chr']
-        start_lists = top_genes['start']
-        end_lists = top_genes['end']
+    # get db lists 
+    input_path = root_path + '/input/'
 
-        # get db lists 
-        input_path = root_path + '/input/'
+    if not os.path.exists(input_path): 
+        warning = "Please make sure that you have created an input folder with input files"
+        add_log(warning)
+        add_log('Input path should be: %s' %input_path)
+    os.chdir(input_path)
 
-        if not os.path.exists(input_path): 
-            warning = "Please make sure that you have created an input folder with input files"
-            add_log(warning)
-            add_log('Input path should be: %s' %input_path)
-        os.chdir(input_path)
+    dbFileList = glob.glob("*.db")
 
-        dbFileList = glob.glob("*.db")
+    database_names = []
+    for dbFilename in dbFileList:
+       database_names.append(dbFilename)
 
-        database_names = []
-        for dbFilename in dbFileList:
-           database_names.append(dbFilename)
+    # Loop through databases 
+    query_output_list = []
+    for i in range(len(database_names)):
+        for k in range(len(tissue_lists)): 
+            if tissue_lists[k] in database_names[i]: 
+                # Connect databases 
+                conn = sqlite3.connect(database_names[i]) 
 
-        # Loop through databases 
-        query_output_list = []
-        for i in range(len(database_names)):
-            for k in range(len(tissue_lists)): 
-                if tissue_lists[k] in database_names[i]: 
-                    # Connect databases 
-                    conn = sqlite3.connect(database_names[i]) 
+                full_query_name = None 
+                if database_names[i] == 'DGN-WB-unscaled_0.5.db':
+                    full_query_name = SQL_QUERY_PREFIX_DNG + gene_lists[k] + "'"
+                else: 
+                    full_query_name = SQL_QUERY_PREFIX + gene_lists[k] + "'"
 
-                    full_query_name = None 
-                    if database_names[i] == 'DGN-WB-unscaled_0.5.db':
-                        full_query_name = SQL_QUERY_PREFIX_DNG + gene_lists[k] + "'"
-                    else: 
-                        full_query_name = SQL_QUERY_PREFIX + gene_lists[k] + "'"
+                query_output = pandas.read_sql(full_query_name, conn, index_col=None)
 
-                    query_output = pandas.read_sql(full_query_name, conn, index_col=None)
+                if database_names[i] == 'DGN-WB-unscaled_0.5.db':
+                    query_output.rename(columns={'gene':'genename'}, inplace=True) 
 
-                    if database_names[i] == 'DGN-WB-unscaled_0.5.db':
-                        query_output.rename(columns={'gene':'genename'}, inplace=True) 
+                # # Add correspinding parameters to the new output file 
+                query_output['tissue'] = tissue_lists[k]
+                query_output['pvalue'] =  pvalue_lists[k]
+                query_output['zscore'] =  zscore_lists[k]
+                query_output['model_n'] = model_n_lists[k]
+                query_output['pred_perf_R2'] = pred_perf_R2_lists[k]
+                query_output['chr'] =  chr_lists[k]
+                query_output['start'] = start_lists[k]
+                query_output['end'] = end_lists[k]
+                query_output_list.append(query_output) 
 
-                    # # Add correspinding parameters to the new output file 
-                    query_output['tissue'] = tissue_lists[k]
-                    query_output['pvalue'] =  pvalue_lists[k]
-                    query_output['zscore'] =  zscore_lists[k]
-                    query_output['model_n'] = model_n_lists[k]
-                    query_output['pred_perf_R2'] = pred_perf_R2_lists[k]
-                    query_output['chr'] =  chr_lists[k]
-                    query_output['start'] = start_lists[k]
-                    query_output['end'] = end_lists[k]
-                    query_output_list.append(query_output) 
+                msg = 'FETCH SNPs for GENE %s ' % gene_lists[k] +  'FROM DATABASE: %s' % database_names[i]
+                add_log(msg)
 
-                    msg = 'FETCH SNPs for GENE %s ' % gene_lists[k] +  'FROM DATABASE: %s' % database_names[i]
-                    add_log(msg)
+                # Close database
+                conn.close() 
 
-                    # Close database
-                    conn.close() 
+    # Merge output data 
+    query_output_of = pandas.concat(query_output_list, axis = 0)   
 
-        # Merge output data 
-        query_output_of = pandas.concat(query_output_list, axis = 0)   
+    top_genes_snps_output_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/top_genes_snps/'
 
-        top_genes_snps_output_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/top_genes_snps/'
+    if not os.path.exists(top_genes_snps_output_path): 
+         os.makedirs(top_genes_snps_output_path)
+    os.chdir(top_genes_snps_output_path)
 
-        if not os.path.exists(top_genes_snps_output_path): 
-             os.makedirs(top_genes_snps_output_path)
-        os.chdir(top_genes_snps_output_path)
+    # Output merged data 
+    query_output_of.to_csv("top_genes_snps.csv", index=None)
 
-        # Output merged data 
-        query_output_of.to_csv("top_genes_snps.csv", index=None)
-
-        add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
+    add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
 
 
@@ -476,11 +471,10 @@ def bubbleplot(projectName):
     # current path 
     currentPath = os.getcwd()
 
+    # back to root path 
     os.chdir('..')
     os.chdir('..')
     os.chdir('..')
-
-    # root path 
     root_path = os.getcwd()
 
     # annotated metaxcan file path 
@@ -497,9 +491,9 @@ def bubbleplot(projectName):
 
 
     # set up vectors for loop 
-    startSites = r("startSites <- c(177043226, 156435952, 129541931, 82670771, 16914895, 136155000, 46500673, 43567337, 29180996, 17390291, 68021297)")
-    snpsNames = r("snpsNames <- c('rs6755777', 'rs62274042', 'rs1400482', 'rs35094336', 'rs7032221', 'rs635634', 'rs7207826', 'rs1879586', 'rs62070645', 'rs4808075', 'DPEP2')")
-    chrosome = r("chrosome <- c(2, 3, 8, 8, 9, 9, 17, 17, 17, 19, 16)")
+    startSites = r("startSites <- c(177043226, 156435952, 129541931, 82670771, 16914895, 136155000, 46500673, 43567337, 29180996, 17390291, 21823094)")
+    snpsNames = r("snpsNames <- c('rs6755777', 'rs62274042', 'rs1400482', 'rs35094336', 'rs7032221', 'rs635634', 'rs7207826', 'rs1879586', 'rs62070645', 'rs4808075', 'MLLT10')")
+    chrosome = r("chrosome <- c(2, 3, 8, 8, 9, 9, 17, 17, 17, 19, 10)")
 
     # for loop through each snps site +/- 1000000 bp  
     r("""
@@ -527,7 +521,7 @@ def bubbleplot(projectName):
             # ggtitle(paste('locus: ', snpsNames[i], '(chromosome', chrosome[i], ')')) +
             labs(x='Gene', y='Tissue') + 
             # scale_x_discrete(breaks = subData$gene_name, labels=Labels) + 
-            theme(axis.text.x = element_text(size=10, face='bold', angle = 90, hjust = 1)) +
+            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
             theme(axis.text.y = element_text(size=10, face='bold')) +
             theme(plot.title = element_text(size=18, face='bold')) +
             # theme(axis.title= element_text(size=18, face='bold')) +
@@ -556,11 +550,10 @@ def regionplot(projectName):
     # current path 
     currentPath = os.getcwd()
 
+    # back to root path 
     os.chdir('..')
     os.chdir('..')
     os.chdir('..')
-
-    # root path 
     root_path = os.getcwd()
 
     # annotated metaxcan file path 
@@ -576,9 +569,9 @@ def regionplot(projectName):
     os.chdir(bubble_plot_output_path)
 
     # set up vectors for loop 
-    startSites = r("startSites <- c(177043226, 156435952, 129541931, 82670771, 16914895, 136155000, 46500673, 43567337, 29180996, 17390291, 68021297)")
-    snpsNames = r("snpsNames <- c('rs6755777', 'rs62274042', 'rs1400482', 'rs35094336', 'rs7032221', 'rs635634', 'rs7207826', 'rs1879586', 'rs62070645', 'rs4808075', 'DPEP2')")
-    chrosome = r("chrosome <- c(2, 3, 8, 8, 9, 9, 17, 17, 17, 19, 16)")
+    startSites = r("startSites <- c(177043226, 156435952, 129541931, 82670771, 16914895, 136155000, 46500673, 43567337, 29180996, 17390291, 21823094)")
+    snpsNames = r("snpsNames <- c('rs6755777', 'rs62274042', 'rs1400482', 'rs35094336', 'rs7032221', 'rs635634', 'rs7207826', 'rs1879586', 'rs62070645', 'rs4808075', 'MLLT10')")
+    chrosome = r("chrosome <- c(2, 3, 8, 8, 9, 9, 17, 17, 17, 19, 10)")
 
     r("""
         # loop through snps site +/- 1000,000 bps 
@@ -615,7 +608,7 @@ def regionplot(projectName):
             geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
             # theme(axis.ticks = element_line(size = 0.1)) + 
             # theme(axis.ticks.length = unit(1, "cm")) + 
-            theme(axis.text.x = element_text(size=12, face='bold', angle = 90, hjust = 1)) +
+            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
             theme(axis.text.y = element_text(size=12, face='bold')) + 
             theme(plot.title = element_text(size=18, face='bold')) +
             theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
@@ -636,7 +629,7 @@ def regionplot(projectName):
             geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(data)), linetype='dashed', color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
-            theme(axis.text.x = element_text(size=12, face='bold', angle = 90, hjust = 1)) +
+            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
             theme(axis.text.y = element_text(size=12, face='bold')) + 
             theme(plot.title = element_text(size=18, face='bold')) +
             theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
@@ -657,7 +650,7 @@ def regionplot(projectName):
             geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(data)), linetype='dashed', color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
-            theme(axis.text.x = element_text(size=12, face='bold', angle = 90, hjust = 1)) +
+            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
             theme(axis.text.y = element_text(size=12, face='bold')) + 
             theme(plot.title = element_text(size=18, face='bold')) +
             theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
@@ -678,7 +671,7 @@ def regionplot(projectName):
             geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(data)), linetype='dashed', color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
-            theme(axis.text.x = element_text(size=12, face='bold', angle = 90, hjust = 1)) +
+            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
             theme(axis.text.y = element_text(size=12, face='bold')) + 
             theme(plot.title = element_text(size=18, face='bold')) +
             theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
@@ -703,76 +696,68 @@ def locuszoom_plot(projectName):
     # current path 
     currentPath = os.getcwd()
 
+    # back to root path 
     os.chdir('..')
     os.chdir('..')
     os.chdir('..')
-
-    # root path 
     root_path = os.getcwd()
 
     # input path 
     input_path = root_path + '/input/'
-
     if not os.path.exists(input_path): 
         warning = "Please make sure that you have created an input folder with input files"
         add_log(warning)
-        add_log('Input path should be: %s' %input_path)
+        add_log('Input path should be: %s' % input_path)
     os.chdir(input_path)
 
-    # annoated_files output file path
-    annoated_files_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME +'/annotated_metaxcan_output_files/'
-    if not os.path.exists(annoated_files_path): 
-        os.makedirs(annoated_files_path)
-
-    # create a temp folder 
+    # create a folder to hold locuszoom results 
     locuszoom_plot_path = root_path + '/locuszoom/locuszoom_plots/'
     if not os.path.exists(locuszoom_plot_path): 
         os.makedirs(locuszoom_plot_path)
 
-    # get input file lists (raw metaxcan output files *.csv) 
-    destination = root_path + '/locuszoom/locuszoom_plots'
+    # source files from input path 
+    # copy the files including plink, run_locuszoom.py and two other .txt from input path into locuszoom program 
+    destination = locuszoom_plot_path     # locuszoom plot destination path 
     plink_destination = root_path + '/locuszoom'
 
     source = os.listdir(input_path)
-    shutil.copy('plink', plink_destination)
-    msg = 'copying %s into locuszoom temp' % 'plink'
 
+    plink_file = 'plink'
+    shutil.copy(plink_file, plink_destination)
+
+    msg = "COPYING: the file '%s' into the folder '%s'" % (plink_file, plink_destination)
     add_log(msg)
 
     for file in source: 
         if file.endswith(".txt"):
             shutil.copy(file, destination)
-            msg = 'copying %s into locuszoom temp' % file
-
+            msg = "COPYING: the file '%s' into the folder '%s'" % (file, destination) 
             add_log(msg)
 
-    # locuszoom script path and copy to locuszoom fold 
     locuszoom_path = root_path + '/MetaXcan-Postprocess/scripts/Python_scripts'
     os.chdir(locuszoom_path)
-    shutil.copy('run_locuszoom.py', destination)
-    msg = 'copying %s into locuszoom temp' % 'run_locuszoom.py'
 
+    locuszoom_scrip_cmd = 'run_locuszoom.py'
+    shutil.copy(locuszoom_scrip_cmd, destination)
+    msg = "COPYING: the file '%s' into the folder '%s'" % (locuszoom_scrip_cmd, destination)  
     add_log(msg)
 
-    # run locuszoom  
+    # run locuszoom program  
     os.chdir(destination)
-    # subprocess.Popen('./run_locuszoom.py')
     os.system('./run_locuszoom.py')
+    add_log('RUNNING: run_locuszoom.py...')
 
-    add_log('run run_locuszoom.py...')
-
-    # set locuszoom plot output file path
+    # setup locuszoom plot output file path and move all files to this new output folder 
     locuszoom_plot_files_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/looszoom_plot/'
     if not os.path.exists(locuszoom_plot_files_path): 
         os.makedirs(locuszoom_plot_files_path)
-
-    # move all files to output folder 
     os.chdir(destination)
+    
     src = destination + '/'
     dst = locuszoom_plot_files_path
     os.system('mv %s %s' % (src, dst))
 
-    msg = 'moving %s into %s' % (src, locuszoom_plot_files_path)
+    msg = "MOVING: all files from the folder '%s' into the folder '%s'" % (src, locuszoom_plot_files_path)
     add_log(msg)
 
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")

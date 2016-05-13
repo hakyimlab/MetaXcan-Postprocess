@@ -29,7 +29,15 @@
   + Download prediction models (`*.db`) <a href = "http://hakyimlab.org/predictdb/"> Prediction Models </a>
   + Download plink (only `plink` file) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
   + Add outputs from PrediXcan or MetaXcan analysis (`*.csv`) 
-  + Add locuszoom input file (`gwas_snp.txt`, other names won't work). The text file (tab-delimited) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
+  + Add input file for region and bubble plots ('gwas_lead_snp.txt', other names won't work). The text file (tab-delimited, and use the exact same column names) should be prepared as described in the following format: 
+
+     snpsNames | startSites | chrosome 
+      ---- | ----- | -----
+      rs1 |  177043226 | 3
+      rs2 | 156435952 | 4
+      rs3 | 21823094 | 17 
+
+  + Add input file for locuszoom plot (`gwas_snp.txt`, other names won't work). The text file (tab-delimited, and use the exact same column names) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
   
       MarkerName |	P-value
       ---- | -----
@@ -37,7 +45,7 @@
       rs2 |	1.23e-04
       rs3 |	9.4e-390
 
-  + Add batch-model file (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
+  + Add batch-model file for locuszoom plot (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited, and use the exact same column names) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
   
     snp | chr | start | stop | flank | run | m2zargs
     ---- | --- | ---- | ---- | ----- | ---- | ------
@@ -51,9 +59,17 @@
  ```./run.sh <your project title>``` - your project name should be consise and a single word e.g. breastcancer, ovarycancer, diabetes etc
 
 ## Output 
-+ Automatically create two new directories which are used to save log and results: 
++ Automatically create two new folders which are used to save log information and results: 
  + `<dir>/log/` - Including all log files 
- + `<dir>/out/` - Including output annotation `.csv` files, manhattan plot `.png` files, qqplot `.png` files, region plot `.png` files, bubble plot `.png` files, locuszoom plot `.pdf` files, top genes with and without corresponding SNPs `.csv`files
+ + `<dir>/out/` - Including the following tables and figures 
+   + annotation `.csv`
+   + manhattan plot `.png`
+   + qqplot `.png`
+   + region plot `.png`
+   + bubble plot `.png`
+   + locuszoom plot `.pdf`
+   + top genes `.csv`
+   + top genes with snps `.csv` 
 
 
 --------------------------------------------------------------------------------

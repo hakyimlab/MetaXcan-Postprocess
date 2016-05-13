@@ -4,11 +4,12 @@
 #### Load modules ####
 ######################
 
-import os, sqlite3 
+import os, sqlite3, time
 from datetime import datetime
 import uuid as myuuid 
 
 logID = str(myuuid.uuid4())
+start_time = time.time() 
 
 ###########################
 #### Global variables  ####
@@ -68,9 +69,13 @@ def write_logs():
 
     global logfile
     global current_logs
+    global start_time
+
+    runing_time = "\nElapsed Time: " + timeString(time.time() - start_time) + "\n" # calculate how long the program is running
+    add_log(runing_time)
 
     for index in range (len(current_logs)): 
-        logfile.write(current_logs[index])
+        logfile.write(current_logs[index])  
 
     current_logs = [] # clear up log 
 
@@ -89,6 +94,22 @@ def finish_log():
 
     global logfile
     logfile.close()
+
+# Pretty string for a given number of seconds.
+def timeString(seconds):
+  tuple = time.gmtime(seconds);
+  days = tuple[2] - 1;
+  hours = tuple[3];
+  mins = tuple[4];
+  secs = tuple[5];
+  if sum([days,hours,mins,secs]) == 0:
+    return "<1s";
+  else:
+    string = str(days) + "d";
+    string += ":" + str(hours) + "h";
+    string += ":" + str(mins) + "m";
+    string += ":" + str(secs) + "s";
+  return string;
 
 
 

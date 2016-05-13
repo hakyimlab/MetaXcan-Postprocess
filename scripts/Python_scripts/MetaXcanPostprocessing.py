@@ -477,6 +477,18 @@ def bubbleplot(projectName):
     os.chdir('..')
     root_path = os.getcwd()
 
+    # get gwas_lead_snp.txt file 
+    input_path = root_path + '/input/'
+    if not os.path.exists(input_path): 
+        warning = "Please make sure that you have created an input folder with input files"
+        add_log(warning)
+        add_log('Input path should be: %s' %input_path)
+    os.chdir(input_path)
+
+    gwas_lead_snp = r("gwas_lead_snp <- read.csv('gwas_lead_snp.txt', sep='\t')")
+    robjects.globalenv['dataframe'] = gwas_lead_snp
+
+
     # annotated metaxcan file path 
     merged_annoated_files_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/annotated_metaxcan_output_files/merged/'
     os.chdir(merged_annoated_files_path)
@@ -489,14 +501,13 @@ def bubbleplot(projectName):
          os.makedirs(bubble_plot_output_path)
     os.chdir(bubble_plot_output_path)
 
-
-    # set up vectors for loop 
-    startSites = r("startSites <- c(177043226, 156435952, 129541931, 82670771, 16914895, 136155000, 46500673, 43567337, 29180996, 17390291, 21823094)")
-    snpsNames = r("snpsNames <- c('rs6755777', 'rs62274042', 'rs1400482', 'rs35094336', 'rs7032221', 'rs635634', 'rs7207826', 'rs1879586', 'rs62070645', 'rs4808075', 'MLLT10')")
-    chrosome = r("chrosome <- c(2, 3, 8, 8, 9, 9, 17, 17, 17, 19, 10)")
-
     # for loop through each snps site +/- 1000000 bp  
     r("""
+        # read dataframe 
+        startSites = as.numeric(as.character(gwas_lead_snp$startSites))
+        snpsNames = as.character(gwas_lead_snp$snpsNames)
+        chrosome = as.numeric(as.character(gwas_lead_snp$chrosome))
+
         # for loop through each snps site +/- 1000000 bp  
         for (i in 1:length(startSites)) 
         {
@@ -529,7 +540,7 @@ def bubbleplot(projectName):
             theme(legend.position = "none")
 
             # save plot 
-            ggsave(paste('bubble_plot_', snpsNames[i], '.png', sep=''), width=10, height=10)
+            ggsave(paste('bubble_plot_', snpsNames[i], '.png', sep=''), width=8, height=8)
         } 
     """)
 
@@ -556,6 +567,17 @@ def regionplot(projectName):
     os.chdir('..')
     root_path = os.getcwd()
 
+    # get gwas_lead_snp.txt file 
+    input_path = root_path + '/input/'
+    if not os.path.exists(input_path): 
+        warning = "Please make sure that you have created an input folder with input files"
+        add_log(warning)
+        add_log('Input path should be: %s' %input_path)
+    os.chdir(input_path)
+
+    gwas_lead_snp = r("gwas_lead_snp <- read.csv('gwas_lead_snp.txt', sep='\t')")
+    robjects.globalenv['dataframe'] = gwas_lead_snp
+
     # annotated metaxcan file path 
     merged_annoated_files_path = root_path + '/output/' + projectName +  "_" + CURRENT_TIME + '/annotated_metaxcan_output_files/merged/'
     os.chdir(merged_annoated_files_path)
@@ -568,12 +590,12 @@ def regionplot(projectName):
          os.makedirs(bubble_plot_output_path)
     os.chdir(bubble_plot_output_path)
 
-    # set up vectors for loop 
-    startSites = r("startSites <- c(177043226, 156435952, 129541931, 82670771, 16914895, 136155000, 46500673, 43567337, 29180996, 17390291, 21823094)")
-    snpsNames = r("snpsNames <- c('rs6755777', 'rs62274042', 'rs1400482', 'rs35094336', 'rs7032221', 'rs635634', 'rs7207826', 'rs1879586', 'rs62070645', 'rs4808075', 'MLLT10')")
-    chrosome = r("chrosome <- c(2, 3, 8, 8, 9, 9, 17, 17, 17, 19, 10)")
-
     r("""
+        # read dataframe 
+        startSites = as.numeric(as.character(gwas_lead_snp$startSites))
+        snpsNames = as.character(gwas_lead_snp$snpsNames)
+        chrosome = as.numeric(as.character(gwas_lead_snp$chrosome))
+
         # loop through snps site +/- 1000,000 bps 
         for (i in 1:length(startSites)) 
         {
@@ -604,7 +626,7 @@ def regionplot(projectName):
             # geom_label_repel(Labels, aes(label=Labels)) +
             # geom_jitter(width = 0.5, height = 0.5) +
             geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +   # 5 x 10-6 
-            geom_hline(yintercept = -log10(0.05/nrow(data)), linetype='dashed', color='black') +
+            geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
             # theme(axis.ticks = element_line(size = 0.1)) + 
             # theme(axis.ticks.length = unit(1, "cm")) + 
@@ -627,7 +649,7 @@ def regionplot(projectName):
                 # ggtitle(paste("locus: ", snpsNames[i], '(chromosome', chrosome[i], ')')) + 
             labs(x='Gene', y='-log10(p-value)') +
             geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(data)), linetype='dashed', color='black') +
+            geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
             theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
             theme(axis.text.y = element_text(size=12, face='bold')) + 
@@ -648,7 +670,7 @@ def regionplot(projectName):
                 # ggtitle(paste("locus: ", snpsNames[i], '(chromosome', chrosome[i], ')')) + 
             labs(x='Gene', y='-log10(p-value)') +
             geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(data)), linetype='dashed', color='black') +
+            geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
             theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
             theme(axis.text.y = element_text(size=12, face='bold')) + 
@@ -669,7 +691,7 @@ def regionplot(projectName):
                 # ggtitle(paste("locus: ", snpsNames[i], '(chromosome', chrosome[i], ')')) + 
             labs(x='Gene', y='-log10(p-value)') +
             geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(data)), linetype='dashed', color='black') +
+            geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
             geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
             theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
             theme(axis.text.y = element_text(size=12, face='bold')) + 
@@ -679,7 +701,7 @@ def regionplot(projectName):
         } 
 
         # output plot 
-        ggsave(paste("region_plot_", snpsNames[i], '.png',sep=''), width=10, height=10)
+        ggsave(paste("region_plot_", snpsNames[i], '.png',sep=''), width=8, height=8)
         } 
     """) 
 
@@ -689,6 +711,7 @@ def regionplot(projectName):
 #########################
 ###  locuszoom Plot #####
 #########################
+
 def locuszoom_plot(projectName):
 
     global projectID 
@@ -759,6 +782,11 @@ def locuszoom_plot(projectName):
 
     msg = "MOVING: all files from the folder '%s' into the folder '%s'" % (src, locuszoom_plot_files_path)
     add_log(msg)
+
+    # deleting nunecessary files in locuszoom output 
+    
+
+
 
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 

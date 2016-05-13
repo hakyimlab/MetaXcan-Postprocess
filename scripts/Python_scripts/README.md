@@ -24,12 +24,12 @@
  + `helpers.py` - This contains all helper functions that can be used through post-processing   
  + `__init__.py` - This is a marker file that marks current directory as python package directory 
  + `README.md` - A brief description about this pipline 
-+ Download standalone LocusZoom <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> as `<dir>/locuszoom`
-+ Create a new fold as `<dir>/input`, and add the following files (don't creat subfolder, only individual files). 
++ Download LocusZoom <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> as `<dir>/locuszoom`
++ Create a new fold as `<dir>/input`, and add the following files (don't creat subfolder, only individual files)
   + Download prediction models (`*.db`) <a href = "http://hakyimlab.org/predictdb/"> Prediction Models </a>
-  + Download plink (only `plink` file, discard the rest) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
+  + Download plink (only `plink` file) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
   + Add outputs from PrediXcan or MetaXcan analysis (`*.csv`) 
-  + Add locuszoom input file (`gwas_snp.txt`, other names won't work). The text file (tab-delimited) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>
+  + Add locuszoom input file (`gwas_snp.txt`, other names won't work). The text file (tab-delimited) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
   
       MarkerName |	P-value
       ---- | -----
@@ -37,7 +37,7 @@
       rs2 |	1.23e-04
       rs3 |	9.4e-390
 
-  + Add batch-model file (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> 
+  + Add batch-model file (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
   
     snp | chr | start | stop | flank | run | m2zargs
     ---- | --- | ---- | ---- | ----- | ---- | ------

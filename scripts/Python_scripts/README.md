@@ -13,7 +13,7 @@
    + rpy2 python module: `pip install rpy2`. More detail @ <a href="http://rpy2.readthedocs.io/en/version_2.7.x/"> rpy2 </a>
    + annotables R package: `install.packages("devtools")`, and `devtools::install_github("stephenturner/annotables")`. More detail @ <a href="https://github.com/stephenturner/annotables#how"> annotables </a>
    + dplyr R package: `install.packages('dplyr')`. More detail @ <a href="https://github.com/hadley/dplyr"> dplyr </a>
-   + qqman R package: 'install.packages("qqman")`. More detail @ <a href="https://github.com/stephenturner/qqman"> qqman </a>
+   + qqman R package: `install.packages("qqman")`. More detail @ <a href="https://github.com/stephenturner/qqman"> qqman </a>
 
 ## Installation and Setup 
 + Navigate to the directory (referenced as `<dir>` thereafter) where all package files should be located. 

@@ -30,7 +30,7 @@
 + Create a new fold as `<dir>/input`, and add the following files (don't create subfolder, only individual files)
   + Download prediction models (`*.db`) <a href = "http://hakyimlab.org/predictdb/"> Prediction Models </a>
   + Download plink (only `plink` file) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
-  + Add outputs from PrediXcan or MetaXcan analysis (`*.csv`) 
+  + Transfer outputs from PrediXcan or MetaXcan analysis (`*.csv`) 
   + Add input file for locuszoom plot (`gwas_snp.txt`, other names won't work). The text file (tab-delimited, and use the exact same column names) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
   
       MarkerName |	P-value
@@ -47,14 +47,14 @@
 + Automatically create two new folders which are used to save log information and results: 
  + `<dir>/log/` - Including all log files 
  + `<dir>/out/` - Including the following tables and figures 
-   + annotation `.csv`
-   + manhattan plot `.png`
-   + qqplot `.png`
-   + region plot `.png`
-   + bubble plot `.png`
-   + locuszoom plot `.pdf`
-   + top genes `.csv`
-   + top genes with snps `.csv` 
+    + annotation `.csv`
+    + manhattan plot `.png`
+    + qqplot `.png`
+    + region plot `.png`
+    + bubble plot `.png`
+    + locuszoom plot `.pdf`
+    + top genes `.csv`
+    + top genes with snps `.csv` 
 
 
 --------------------------------------------------------------------------------

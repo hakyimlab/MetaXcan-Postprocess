@@ -14,29 +14,23 @@
    + annotables R package: `install.packages("devtools")`, and `devtools::install_github("stephenturner/annotables")`. More detail @ <a href="https://github.com/stephenturner/annotables#how"> annotables </a>
    + dplyr R package: `install.packages('dplyr')`. More detail @ <a href="https://github.com/hadley/dplyr"> dplyr </a>
    + qqman R package: `install.packages("qqman")`. More detail @ <a href="https://github.com/stephenturner/qqman"> qqman </a>
+   + ggplot2 R package: `install.packages("ggplot2")`. More detail @ <a href="https://github.com/hadley/ggplot2"> ggplot2 </a>
 
 ## Installation and Setup 
 + Navigate to the directory (referenced as `<dir>` thereafter) where all package files should be located. 
 + Download this pipline as `<dir>/MetaXcan-Postprocess`:  
  + `run.sh` - Helper bash script that launches run_MetaXcanPostprocessing file 
  + `run_MetaXcanPostprocessing.py` - A simple "main()" that loads `MetaXcanPostprocessing.py` and `run_locuszoom` file
- + `MetaXcanPostprocessing.py` - This is where all post-processing work will be, such as output annotation, manhattan plot, qqplot, retion plot, bubble plot, locuszoom plot, top genes with and without corresponding SNPs.   
+ + `MetaXcanPostprocessing.py` - This is where all post-processing work will be, such as output annotation, manhattan plot, qqplot, retion plot, bubble plot, locuszoom plot, top genes with and without corresponding SNPs. 
+ + `run_locuszoom.py` - A script that runs standalone software `locuszoom`  
  + `helpers.py` - This contains all helper functions that can be used through post-processing   
  + `__init__.py` - This is a marker file that marks current directory as python package directory 
  + `README.md` - A brief description about this pipline 
-+ Download LocusZoom <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> as `<dir>/locuszoom`
-+ Create a new fold as `<dir>/input`, and add the following files (don't creat subfolder, only individual files)
++ Download LocusZoom (37.5GB) <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a> as `<dir>/locuszoom`
++ Create a new fold as `<dir>/input`, and add the following files (don't create subfolder, only individual files)
   + Download prediction models (`*.db`) <a href = "http://hakyimlab.org/predictdb/"> Prediction Models </a>
   + Download plink (only `plink` file) @ <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> 
   + Add outputs from PrediXcan or MetaXcan analysis (`*.csv`) 
-  + Add input file for region and bubble plots ('gwas_lead_snp.txt', other names won't work). The text file (tab-delimited, and use the exact same column names) should be prepared as described in the following format: 
-
-     snpsNames | startSites | chrosome 
-      ---- | ----- | -----
-      rs1 |  177043226 | 3
-      rs2 | 156435952 | 4
-      rs3 | 21823094 | 17 
-
   + Add input file for locuszoom plot (`gwas_snp.txt`, other names won't work). The text file (tab-delimited, and use the exact same column names) should be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
   
       MarkerName |	P-value
@@ -44,15 +38,6 @@
       rs1	|  0.423
       rs2 |	1.23e-04
       rs3 |	9.4e-390
-
-  + Add batch-model file for locuszoom plot (`batch_locuszoom.txt`, other names won't work). The text file (tab-delimited, and use the exact same column names) shold be prepared as described in <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> here </a>. For example: 
-  
-    snp | chr | start | stop | flank | run | m2zargs
-    ---- | --- | ---- | ---- | ----- | ---- | ------
-    rs7983146 | NA | NA | NA | 500kb | yes | title="My favorite SNP"
-    TCF7L2 | NA | NA | NA | 1.25MB | yes | title="TCF7L2 Region" showRecomb=F
-    rs7957197 | 12 | 119503590 | 120322280 | NA | yes | showAnnot=F
-
 
 ## Run 
 + Open the terminal, and execute the `run.sh` script by typing:

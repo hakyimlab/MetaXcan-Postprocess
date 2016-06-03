@@ -1,19 +1,23 @@
-''' This script wraps some R packages such as annotables and qqman, or some R codes in python environment using rpy2 '''
-''' Please see more documentation at http://rpy2.readthedocs.org/en/version_2.7.x/ ''' 
+''' 
+This script wraps some R packages such as annotables and qqman, or some R codes in python environment using rpy2
+Please see more documentation at http://rpy2.readthedocs.org/en/version_2.7.x/ 
+''' 
 
-
+'''
 ################################
 #### Software prerequistes #####
 ################################
-
+'''
 # rpy2: pip install rpy2
 # annotables: install.packages('annotables')
 # dplyr: install.packages('dplyr')
 
+
+'''
 ###################
 #### Modules  #####
 ###################
-
+'''
 from rpy2.robjects import r
 from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
@@ -22,15 +26,18 @@ from helpers import *
 from datetime import datetime 
 import os, pandas, glob, sqlite3, shutil, subprocess
 import uuid as myuuid 
+import pandas 
 
 pandas2ri.activate()
 
 projectID = str(myuuid.uuid4())
 
+
+'''
 ######################
 #### Annotations #####
 ######################
-
+'''
 def annotate_metaxcan_result(projectName):
 
     global projectID 
@@ -133,10 +140,11 @@ def annotate_metaxcan_result(projectName):
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
     
 
+'''
 ####################
 ####  QQ-Plot  #####
 ####################
-
+'''
 def qqplot(projectName):
 
     global projectID 
@@ -176,7 +184,7 @@ def qqplot(projectName):
 
         # draw qq-plot and save them to files 
         r.png('%s%s%s'%('QQ-Plot_', outputFileName[:-4],'.png'))
-        qqman.qq(data['pvalue'],  main = "Q-Q plot of GWAS p-values")
+        qqman.qq(data['pvalue'],  main = "MetaXcan genes")
         r['dev.off']()
         os.chdir(annoated_files_path)
 
@@ -198,10 +206,11 @@ def qqplot(projectName):
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
 
+'''
 ###########################
 ####  Manhattan-Plot  #####
 ########################### 
-
+'''
 def manhattan(projectName):
 
     global projectID 
@@ -244,7 +253,7 @@ def manhattan(projectName):
 
         # draw manhattan and save them to files 
         r.png('%s%s%s'%('Manhattan-Plot_', outputFileName[:-4], '.png'))
-        qqman.manhattan(data, chr = 'chr', bp='start', p='pvalue', snp='rsid', main = 'Manhattan plot')
+        qqman.manhattan(data, chr = 'chr', bp='start', p='pvalue', snp='gene_name', main = 'MetaXcan genes')
         r['dev.off']()
         os.chdir(annoated_files_path)
 
@@ -261,16 +270,17 @@ def manhattan(projectName):
     os.chdir(manhattanplot_output_path)
 
     # draw manhattan and save them to files 
-    r.png('%s%s%s'%('Manhattan-Plot_', 'mergedWithoutSNPs.csv', '.png'))
-    qqman.manhattan(data, chr = 'chr', bp='start', p='pvalue', snp='rsid', main = 'Manhattan plot')
+    r.png('%s%s%s'%('Manhattan-Plot_', 'merged_annotated_metaxcan_output.csv', '.png'))
+    qqman.manhattan(data, chr = 'chr', bp='start', p='pvalue', snp='gene_name', main = 'Manhattan plot')
     r['dev.off']()
 
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
+'''
 ######################################
 ####   Top Gene List without SNPs ####
 ###################################### 
-
+'''
 def sortTopGeneList(projectName):
 
     global projectID 
@@ -315,6 +325,8 @@ def sortTopGeneList(projectName):
         # sort data by defined column 
         df.sort_values(['pvalue', 'model_n'], ascending=[1, 0], inplace=True)
         total_rows = df.shape[0] # number of row count shape[1] is number of col count 
+        msg = 'total_row within tissue: ' + str(total_rows)
+        add_log(msg)
         # total_rows_in_total += total_rows 
         cut_off = 0.05/total_rows 
         # cut_off_list.append(cut_off)
@@ -338,6 +350,9 @@ def sortTopGeneList(projectName):
     df = pandas.read_csv('merged_annotated_metaxcan_output.csv') 
 
     total_rows_in_total = df.shape[0] 
+    msg = 'total_row_in_total: ' + str(total_rows_in_total)
+    add_log(msg)
+
     total_cut_off = 0.05/total_rows_in_total 
 
     msg = 'CALCULATING GENOME-WIDE P-VALUE: ' + str(total_cut_off)
@@ -354,10 +369,11 @@ def sortTopGeneList(projectName):
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
 
+'''
 ####################################
 ####   Top Gene List with SNPs #####
 #################################### 
-
+'''
 def sortTopGeneListWithSNPs(projectName):
 
     global projectID 
@@ -455,11 +471,11 @@ def sortTopGeneListWithSNPs(projectName):
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
 
-
+'''
 ######################
 ###  Bubble Plot #####
 ######################
-
+'''
 def bubbleplot(projectName):
 
     global projectID 
@@ -478,14 +494,20 @@ def bubbleplot(projectName):
     root_path = os.getcwd()
 
     # get gwas_lead_snp.txt file 
-    input_path = root_path + '/input/'
+    input_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/top_genes/'
     if not os.path.exists(input_path): 
         warning = "Please make sure that you have created an input folder with input files"
         add_log(warning)
         add_log('Input path should be: %s' %input_path)
     os.chdir(input_path)
 
-    gwas_lead_snp = r("gwas_lead_snp <- read.csv('gwas_lead_snp.txt', sep='\t')")
+    gwas_lead_snp = r("""
+        gwas_lead_snp <- read.csv('sorted_top_genes.csv') %>% 
+          select(gene_name, chr, start) %>%
+          distinct()
+        colnames(gwas_lead_snp) = c('snpsNames', 'chrosome', 'startSites')
+
+        """)
     robjects.globalenv['dataframe'] = gwas_lead_snp
 
 
@@ -546,10 +568,12 @@ def bubbleplot(projectName):
 
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
+
+'''
 ######################
 ###  Region Plot #####
 ######################
-
+'''
 def regionplot(projectName):
 
     global projectID 
@@ -568,14 +592,20 @@ def regionplot(projectName):
     root_path = os.getcwd()
 
     # get gwas_lead_snp.txt file 
-    input_path = root_path + '/input/'
+    input_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/top_genes/'
     if not os.path.exists(input_path): 
         warning = "Please make sure that you have created an input folder with input files"
         add_log(warning)
         add_log('Input path should be: %s' %input_path)
     os.chdir(input_path)
 
-    gwas_lead_snp = r("gwas_lead_snp <- read.csv('gwas_lead_snp.txt', sep='\t')")
+    gwas_lead_snp = r("""
+        gwas_lead_snp <- read.csv('sorted_top_genes.csv') %>% 
+          select(gene_name, chr, start) %>%
+          distinct()
+        colnames(gwas_lead_snp) = c('snpsNames', 'chrosome', 'startSites')
+
+        """)
     robjects.globalenv['dataframe'] = gwas_lead_snp
 
     # annotated metaxcan file path 
@@ -708,11 +738,14 @@ def regionplot(projectName):
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
 
+'''
 #########################
 ###  locuszoom Plot #####
 #########################
-
+'''
 def locuszoom_plot(projectName):
+
+    dplyr = importr('dplyr',  on_conflict="warn")
 
     global projectID 
 
@@ -725,13 +758,27 @@ def locuszoom_plot(projectName):
     os.chdir('..')
     root_path = os.getcwd()
 
-    # input path 
-    input_path = root_path + '/input/'
+    # make batch_locuszoom.txt file 
+    input_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/top_genes/'
     if not os.path.exists(input_path): 
         warning = "Please make sure that you have created an input folder with input files"
         add_log(warning)
-        add_log('Input path should be: %s' % input_path)
+        add_log('Input path should be: %s' %input_path)
     os.chdir(input_path)
+
+    gwas_lead_snp = r("""
+        gwas_lead_snp <- read.csv('sorted_top_genes.csv') %>% 
+          select(gene_name, chr, start, end) %>%
+          distinct() %>% 
+          mutate(flank='2MB', run = 'yes', m2zargs= "showAnnot=F")
+          colnames(gwas_lead_snp) = c('snp', 'chr', 'start', 'stop', 'flank', 'run', 'm2zargs')
+          write.table(gwas_lead_snp, file="batch_locuszoom.txt", sep=" ", quote=FALSE, row.names=F)
+
+        """)
+
+
+    # write gwas_lead_snp into txt file
+    # gwas_lead_snp.to_csv("batch_locuszoom.txt", sep='\t')
 
     # create a folder to hold locuszoom results 
     locuszoom_plot_path = root_path + '/locuszoom/locuszoom_plots/'
@@ -742,6 +789,26 @@ def locuszoom_plot(projectName):
     # copy the files including plink, run_locuszoom.py and two other .txt from input path into locuszoom program 
     destination = locuszoom_plot_path     # locuszoom plot destination path 
     plink_destination = root_path + '/locuszoom'
+
+
+    source = os.listdir(input_path)
+
+
+    for file in source: 
+        if file.endswith(".txt"):
+            shutil.copy(file, destination)
+            msg = "COPYING: the file '%s' into the folder '%s'" % (file, destination) 
+            add_log(msg)
+    os.system('rm batch_locuszoom.txt')
+
+
+    # input path 
+    input_path = root_path + '/input/'
+    if not os.path.exists(input_path): 
+        warning = "Please make sure that you have created an input folder with input files"
+        add_log(warning)
+        add_log('Input path should be: %s' % input_path)
+    os.chdir(input_path)
 
     source = os.listdir(input_path)
 
@@ -776,16 +843,12 @@ def locuszoom_plot(projectName):
         os.makedirs(locuszoom_plot_files_path)
     os.chdir(destination)
     
-    src = destination + '/'
+    src = destination
     dst = locuszoom_plot_files_path
     os.system('mv %s %s' % (src, dst))
 
     msg = "MOVING: all files from the folder '%s' into the folder '%s'" % (src, locuszoom_plot_files_path)
     add_log(msg)
-
-    # deleting nunecessary files in locuszoom output 
-    
-
 
 
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")

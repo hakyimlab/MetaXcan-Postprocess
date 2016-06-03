@@ -9,10 +9,10 @@
 +  <a rel="nofollow" class="external text" href="http://www.python.org/download/">Python 2.7+</a> (do <b> not </b> download the 3.0 branch!)
 +  <a rel="nofollow" class="external text" href="http://www.r-project.org/">R 3.0+</a>
 +  <a rel="nofollow" class="external text" href="http://rpy2.readthedocs.io/en/version_2.7.x/"> rpy2 </a>
-+  <a rel="nofollow" class="external text" href="http://rpy2.readthedocs.io/en/version_2.7.x/"> annotables </a>
-+  <a rel="nofollow" class="external text" href="http://rpy2.readthedocs.io/en/version_2.7.x/"> dplyr </a>
-+  <a rel="nofollow" class="external text" href="http://rpy2.readthedocs.io/en/version_2.7.x/"> qqman </a>
-+  <a rel="nofollow" class="external text" href="http://rpy2.readthedocs.io/en/version_2.7.x/"> ggplot2 </a>
++  <a rel="nofollow" class="external text" href="https://github.com/stephenturner/annotables#how"> annotables </a>
++  <a rel="nofollow" class="external text" href="https://github.com/hadley/dplyr"> dplyr </a>
++  <a rel="nofollow" class="external text" href="https://github.com/stephenturner/qqman"> qqman </a>
++  <a rel="nofollow" class="external text" href="https://github.com/hadley/ggplot2"> ggplot2 </a>
 
 ## Installation and Setup 
 + Navigate to the directory (referenced as `<dir>` thereafter) where all package files should be located. 

@@ -30,9 +30,9 @@
 *.pyc
 
 # safe places to store data
+build*
 data*
 intermediate*
 results*
 kk*
 support_data*
-build*

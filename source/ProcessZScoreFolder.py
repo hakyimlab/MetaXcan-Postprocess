@@ -9,6 +9,28 @@ from subprocess import  call
 import metax.Logging as Logging
 import metax.Gene as Gene
 
+class OTF(object): #output_table_fotmat
+    GENE=0
+    CHR=1
+    BASE_POSITION=2
+    ZSCORE=3
+    N=4
+    MODEL_N=5
+    VAR_G=6
+
+class MIF(object):
+    GENE=0
+    GENE_NAME=1
+    ZSCORE=2
+    PVALUE=3
+    PRED_PERF_R2=4
+    VAR_G=5
+    N=6
+    COVARIANCE_N=7
+    MODEL_N=8
+
+SF = MIF
+
 class ProcessFiles(object):
     def __init__(self, args):
         self.gene_digest_path = args.gene_digest_file
@@ -31,7 +53,7 @@ class ProcessFiles(object):
             if self.file_regexp and not self.file_regexp.match(content):
                 logging.log(9, "Ignoring file %s", content)
                 continue
-            self.processContent(content, gene_digest)
+            self.processContent(content, gene_digest_by_name)
 
         self.cleanup()
 
@@ -41,14 +63,13 @@ class ProcessFiles(object):
         path = self.intermediatePath(content)
         data = robjects.r.export_data(path)
 
-        comps = content.split(".csv")[0]
-        comps = comps.split("TW_")
+        prefix = content.split(".csv")[0]
 
-        qqunif_name = comps[0]+"__"+comps[1]+"__qqunif.png"
+        qqunif_name = prefix+"-qqunif.png"
         qqunif_path = os.path.join(self.output_folder, qqunif_name)
         robjects.r.zscore_qqunif_from_data(data, qqunif_path)
 
-        manhattan_name = comps[0]+"__"+comps[1]
+        manhattan_name = prefix
         manhattan_path = os.path.join(self.output_folder, manhattan_name)
         robjects.r.do_manhattan_plot_from_data(data, manhattan_path)
 
@@ -62,15 +83,15 @@ class ProcessFiles(object):
                         header = self.buildHeader()
                         intermediate_file.write(header)
                         continue
+                    line = line.strip()
                     comps = line.split(",")
                     if len(comps) == 4:
                         comps.insert(3,"NA")
-                    gene_name = comps[0]
-                    rest = ",".join(comps[1:])
+                    gene_name = comps[SF.GENE_NAME]
                     gene = gene_digest[gene_name] if gene_name in gene_digest else None
                     base_position = gene.base_position if gene else "NA"
                     chr = gene.chromosome_name if gene else "NA"
-                    output = ",".join([gene_name,chr,base_position,rest])
+                    output = ",".join([gene_name,chr,base_position,comps[SF.ZSCORE], comps[SF.N], comps[SF.MODEL_N], comps[SF.VAR_G]])+"\n"
                     intermediate_file.write(output)
 
     def inputPath(self, content):

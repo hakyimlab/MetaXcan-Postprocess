@@ -87,7 +87,7 @@ build_comparison_plot <- function(df, first_label, second_label, title, columns=
         theme(plot.title = element_text(lineheight=3, face="bold")) +
         xlab(first_label) +
         ylab(second_label) +
-        geom_point(colour = 'black', shape=1) +
+        geom_point(colour = 'black', size=0.01) +
         facet_wrap(~the_facet, scales="fixed",ncol=columns) +
         geom_abline(intercept=0, slope=1, colour="grey49")
 

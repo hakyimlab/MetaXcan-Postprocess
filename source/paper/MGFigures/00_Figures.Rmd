@@ -1,0 +1,207 @@
+---
+title: "00_Figures"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(devtools)
+library(feather)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(RPostgreSQL)
+source('Plots.R')
+source("qqunif_compare.R")
+
+"%&%" <- function(a,b) paste(a,b,sep='')
+```
+
+# Analysis
+
+
+
+```{r project layout, echo=FALSE}
+results.dir <- 'results'
+if(!dir.exists(results.dir)) dir.create(results.dir)
+
+data.dir <- 'data'
+
+results.dir <- 'results'
+if(!dir.exists(results.dir)) dir.create(results.dir)
+
+plots.dir <- file.path(results.dir, 'plots')
+if(!dir.exists(plots.dir)) dir.create(plots.dir)
+
+pheno.selected = read_tsv(file.path(data.dir,'selected-phenotypes.txt'))
+```
+
+```{r connect to postgreSQL, echo=FALSE}
+
+drv <- dbDriver("PostgreSQL")
+db <- dbConnect(drv, host="mtest.ccsriudvs1y0.us-east-1.rds.amazonaws.com",
+                        port="5432",
+                        dbname="metaxcan",
+                        user="metaxcan_ro",
+                        password="M3t4xc4n")
+
+## dbListTables(db)
+## dbListFields(db,'metaxcan_result')
+## dbDisconnect(db)
+
+query_base = paste0( "SELECT ",
+    " g.gene_name,",
+    " m.zscore,",
+    " m.effect_size,",
+    " m.pval,",
+    " p.tag as phenotype,",
+    " t.tissue as tissue,",
+    " m.pred_perf_R2,",
+    " m.pred_perf_pval,",
+    " m.n,",
+    " m.model_n",
+    " FROM gene AS g ",
+    " INNER JOIN metaxcan_result AS m ON g.id = m.gene_id ",
+    " INNER JOIN tissue AS t ON t.id = m.tissue_id ",
+    " INNER JOIN pheno AS p ON p.id = m.pheno_id " )
+
+query.pheno.tissue = function(pheno,tissue,Rthres=0.)
+{
+  query =  paste0(query_base,
+   "WHERE p.tag like '", pheno,"%'",
+   " and m.pred_perf_R2 > ", Rthres,
+   "and t.tissue like '" %&% tissue %&% "%'")
+  dbGetQuery(db,query)
+}
+
+query.pheno = function(pheno,Rthres=0.)
+{
+  query =  paste0(query_base,
+    "WHERE p.tag like '", pheno, "%'",
+    " and m.pred_perf_R2 > ", Rthres)
+  dbGetQuery(db,query)
+}
+
+query.all = function(Rthres=0.)
+{
+    query =  paste0(query_base,
+    " and m.pred_perf_R2 > ", Rthres)
+  dbGetQuery(db,query)
+}
+```
+
+```{r plot data, echo = FALSE, cache=TRUE}
+build_data <- function() {
+  d <- data.frame(pred_perf_r2=numeric(), 
+                  pred_perf_pval = numeric(),
+                  zscore = numeric(),
+                  phenotype = character(),
+                  tissue = character(),
+                  gene_name = character())
+  for(phenoname in pheno.selected$pheno)
+  {
+    data <- query.pheno(phenoname)
+    append <- data.frame(pred_perf_r2 = data$pred_perf_r2,
+                         pred_perf_pval = data$pred_perf_pval,
+                         zscore = data$zscore,
+                         pval = data$pval,
+                         phenotype = data$phenotype,
+                         tissue = data$tissue,
+                         gene_name = data$gene_name,
+                         stringAsFactors=FALSE)
+    d <- rbind(d, append)
+  }
+  return(d)
+}
+
+d <- build_data()
+```
+
+```{r zscore2-vs-stuff, echo=FALSE, cache=TRUE}
+master.plot <- function(output, data, title, facet, col_x, col_y, ncols, w, h) {
+  pp <- 
+    ggplot(d, aes_string(x=col_x, y=col_y)) + 
+    geom_smooth() + 
+    ggtitle(title) + 
+    facet_wrap(facet,scales="free",ncol=ncols)
+
+  png(output,width=w,height=h)
+  print(pp)
+  dev.off()
+}
+
+plot.zscore2.pred_perf_r2 <- function(output_name, data, facet_string, ncols, w, h) {
+  facet <- as.formula(paste("~", facet_string))
+  title <- expression(paste(zscore^{2}, " vs ", R^2))
+  master.plot(output_name, data,title, facet, "pred_perf_r2", "zscore^2", ncols, w, h)
+}
+
+plot.zscore2.pred_perf_pval <- function(output_name, data, facet_string, ncols, w, h) {
+  facet <- as.formula(paste("~", facet_string))
+  title <- expression(paste(zscore^{2}, " vs ", p-value))
+  master.plot(output_name, data,title, facet, "rank(pred_perf_pval)", "zscore^2", ncols, w, h)
+}
+
+plot.zscore2.pred_perf_r2(file.path(plots.dir, "zscore2-vs-pred-perf-R2-by-phenotype.png"), data, "phenotype", 5, 1200, 1440)
+plot.zscore2.pred_perf_r2(file.path(plots.dir, "zscore2-vs-pred-perf-R2-by-tissue.png"), data, "tissue", 7, 1120, 1280)
+plot.zscore2.pred_perf_pval(file.path(plots.dir, "zscore2-vs-pred-perf-pval-by-phenotype.png"), data, "phenotype", 5, 1200, 1440)
+plot.zscore2.pred_perf_pval(file.path(plots.dir, "zscore2-vs-pred-perf-pval-by-tissue.png"), data, "tissue", 7, 1120, 1280)
+```
+
+```{r clinvar, echo=FALSE, cache=TRUE}
+clinvar = read_tsv(file.path(data.dir,'/clinvar/gene_condition_source_id'))
+clinvargene = clinvar %>% select(GeneSymbol) %>% mutate(in.clinvar = TRUE) %>% unique()
+
+clinvar_data <- build_qqunif_data(d, clinvar,  pheno.selected,'clinvar')
+```
+
+# ```{r kk, cache=TRUE}
+# d1 <- clinvar_data$d1
+# 
+# d1 <- d1[grepl("BMI",d1$the_facet),]
+# d2 <- clinvar_data$d2
+# d2 <- d2[grepl("BMI",d2$the_facet),]
+# ```
+
+```{r clinvar plot, echo=FALSE, cache=TRUE}
+#head(clinvar_d)
+d1 <- clinvar_data$d1
+d2 <- clinvar_data$d2
+clinvar_plot <- qq_unif_faceted_comparison_plot(d1, d2,
+    title="QQ Uniform plot for MetaXcan results across all genes, vs results for genes in ClinVar",
+    columns=4)
+
+png(file.path(plots.dir, "clinvar-vs-metaxcan.png"), width=1200, height=1000)
+print(clinvar_plot)
+dev.off()
+```
+
+```{r sample pheno and tissue, echo=FALSE}
+build_selected_pheno_and_tissue <- function(data) {
+  selected_pheno <- 'CARDIoGRAM_C4D_CAD_ADDITIVE'
+  by_pheno <- data[data$phenotype == selected_pheno,]
+  p1 <- ggplot(by_pheno, aes(x = pred_perf_r2, zscore^2)) + geom_smooth() + ggtitle(selected_pheno) +
+    labs(x="Prediction Performance R2") 
+  p3 <- ggplot(by_pheno, aes(rank(pred_perf_pval), zscore^2)) + geom_smooth() + ggtitle(selected_pheno) +
+    labs(x="Ranked Prediction Performance pvalue")
+  
+  selected_tissue <- 'Artery_Aorta'
+  by_tissue <- data[grepl(selected_tissue, data$tissue),]
+  p2 <- ggplot(by_tissue, aes(x = pred_perf_r2, zscore^2)) + geom_smooth() + ggtitle(selected_tissue) +
+    labs(x="Prediction Performance R2") 
+  p4 <- ggplot(by_tissue, aes(rank(pred_perf_pval), zscore^2)) + geom_smooth() + ggtitle(selected_tissue) +
+    labs(x="Ranked Prediction Performance pvalue")
+  g <- grid.arrange(p1, p2, ncol =2, top = "Sample trend")
+  png(file.path(plots.dir, "selected-examples-r2-pval.png"), width=800, height=800)
+  #multiplot(p1, p2, ncol = 2)
+  #print(g)
+  grid.arrange(p1, p2, p3, p4, ncol =2, top = "Sample trend")
+  dev.off()
+}
+
+build_selected_pheno_and_tissue(d)
+```

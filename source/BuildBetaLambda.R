@@ -86,7 +86,7 @@ get_lambdas <- function(df) {
     return(result)
 }
 
-parser <- ArgumentParser(description="Compare matching metaxcan results folders")
+parser <- ArgumentParser(description="Build lambdas from GWAS betas")
 parser$add_argument('--folder',
                     help='path to old results',
                     default='data/betas')

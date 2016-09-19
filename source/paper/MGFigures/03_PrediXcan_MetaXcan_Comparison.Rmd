@@ -1,0 +1,131 @@
+---
+title: "03_PrediXcan_Metaxcan_comparison"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(stringi)
+source("Plots.R")
+```
+
+
+```{r load_predixcan_data, echo=FALSE, cache=TRUE}
+PREDIXCAN_T <- "data/predixcan_results/predixcan_%s_%s_dgnwb.txt"
+POP_TOKEN <- c("afr","eur", "eas")
+
+load_predixcan_data <- function(template, prefix, tokens) {
+  results <- list()
+  for (t in tokens) {
+    path <- sprintf(template, prefix, t)
+    p <- read.delim(path, sep = " ")
+    p$gene_key <- gsub("\\..*","", p$gene) 
+    results[[t]] <- p
+  }
+  return(results)
+}
+
+predixcan_igrowth <- load_predixcan_data(PREDIXCAN_T, "igrowth", POP_TOKEN)
+predixcan_sim <- load_predixcan_data(PREDIXCAN_T, "sim", POP_TOKEN)
+```
+
+```{r load_metaxcan_data, echo=FALSE, cache=TRUE}
+METAXCAN_T <- "data/metaxcan_results/%s_b_%s_c_%s.csv"
+
+m_key <- function(b, c) {sprintf("b_%s_c_%s",b, c)}
+
+load_metaxcan_data <- function(template,prefix, tokens) {
+  results <- list()
+  for (t1 in tokens) {
+    for (t2 in tokens) {
+      k <- m_key(t1, t2)
+      p <- sprintf(template, prefix, t1, t2)
+      results[[k]] <- read.csv(p, stringsAsFactors = FALSE)
+    }
+  }
+  return(results)
+}
+
+metaxcan_igrowth <- load_metaxcan_data(METAXCAN_T, "igrowth", POP_TOKEN)
+metaxcan_sim <- load_metaxcan_data(METAXCAN_T, "sim", POP_TOKEN)
+```
+
+```{r plot_data, echo=FALSE, cache=TRUE}
+merge_p_m <- function(p, m, by_p="gene_key", by_m="gene"){
+    by_c <- c()
+    by_c[[by_p]] <- by_m
+    r <- p %>% inner_join(m, by = by_c)
+    r <- r %>% select(gene, metaxcan_z=zscore, predixcan_z=z.stat)
+    r$R2 <- lm_eqn(r)
+    return(r)
+}
+
+build_predixcan_metaxcan_plot_data <- function(predixcan_results, metaxcan_results, tokens) {
+  data <- data.frame()
+  for (population in tokens) {
+    for (target in tokens) {
+      p <- predixcan_results[[target]]
+      #Careful of this. We want to compare Predixcan(population=target) with
+      #Metaxcan(GWAS=target, covariance=reference)
+      m <- metaxcan_results[[m_key(b=target, c=population)]] 
+      r <- p %>% inner_join(m, by = c("gene_key" = "gene"))
+      r <- r %>% select(gene, metaxcan_z=zscore, predixcan_z=z.stat)
+      r$R2 <- lm_eqn(r)
+      r$study <- sprintf("%s GWAS Study", toupper(target))
+      r$reference <- sprintf("%s Reference", toupper(population))
+      data <- rbind(data,r)
+    }
+  }
+  return(data)
+}
+
+sim_comparison_plot_data <- build_predixcan_metaxcan_plot_data(predixcan_sim, metaxcan_sim, POP_TOKEN)
+igrowth_comparison_plot_data <- build_predixcan_metaxcan_plot_data(predixcan_igrowth, metaxcan_igrowth, POP_TOKEN)
+```
+
+```{r plot, echo=FALSE, cache=TRUE}
+(function(){
+  sim_plot <- m_p_grid_plot(sim_comparison_plot_data, 
+                  r_x=-1, r_y=3.8, r_font_size=17,
+                  title_font_size=40, axis_text_size=20, facet_font_size=35)
+  png("results/plots/predixcan_metaxcan_simulated_comparison.png", width=1200, height=1200)
+  print(sim_plot)
+  dev.off()
+   
+  igrowth_plot <- m_p_grid_plot(igrowth_comparison_plot_data, 
+                      r_x=-3, r_y=3.8, r_font_size=17,
+                      title_font_size=40, axis_text_size=20, facet_font_size=35)
+  png("results/plots/predixcan_metaxcan_igrowth_comparison.png", width=1200, height=1200)
+  print(igrowth_plot)
+  dev.off()  
+})()
+```
+
+
+```{r kaanan data, echo=FALSE}
+(function() {
+  pbd <- read.delim("data/predixcan_results/PrediXcan_BD_DGNWholeBlood_EN0.5.txt", sep=" ")
+  mbd <- read.csv("data/metaxcan_results/bd-gwas_scaled.csv")
+  bd <- merge_p_m(pbd, mbd, by_p="gene",by_m="gene_name")
+  bd$the_facet <- "Bipolar Disorder"
+  
+  pt1d <- read.delim("data/predixcan_results/PrediXcan_T1D_DGNWholeBlood_EN0.5.txt", sep=" ")
+  mt1d <- read.csv("data/metaxcan_results/t1d-gwas_scaled.csv")
+  t1d <- merge_p_m(pt1d, mt1d, by_p="gene",by_m="gene_name")
+  t1d$the_facet <- "Type I Diabetes"
+  
+  data <- rbind(bd, t1d)
+  plot <- m_p_facet_plot(data, 
+        r_x=-3, r_y=3.8, r_font_size=17,
+        title_font_size=30, axis_text_size=20, facet_font_size=35)
+  
+  png("results/plots/predixcan_metaxcan_t1d_bd_comparison.png", width=600, height=1200)
+  print(plot)
+  dev.off()
+})() 
+```

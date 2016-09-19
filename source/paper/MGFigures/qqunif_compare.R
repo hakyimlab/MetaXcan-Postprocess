@@ -1,4 +1,4 @@
-
+source("utilities.R")
 find.clinvar.genes = function(clinvar, disname) unique( clinvar$GeneSymbol[grep(disname,clinvar$DiseaseName,ignore.case=T )] )
 
 build_qqunif_data <- function(data, clinvar, pheno.selected, genesetname) {
@@ -9,6 +9,7 @@ build_qqunif_data <- function(data, clinvar, pheno.selected, genesetname) {
     the_facet <- facet
     p_val <- 2*pnorm(-abs(in.df$zscore))
     y <- -sort(log10(p_val))
+    y <- pmin(y, 30) #upper threshold value
     nn <- length(y)
     x <- -log10((1:nn)/(nn+1))
     
@@ -47,7 +48,9 @@ build_qqunif_data <- function(data, clinvar, pheno.selected, genesetname) {
     ngenes <- length(unique(d$gene_name[ind]))
     phenotype <- unique(d$phenotype)
     phenotype.short <- pheno.selected$pheno.short[pheno.selected$pheno==phenoname]
-    title = paste0(phenotype.short,' ', ', all genes vs (', length(geneset),') ', disname,' genes')
+    
+    title <- pheno.selected$label[pheno.selected$pheno == phenoname]
+    #title <- paste0(simpleCap(disname),',\n all genes vs (', ngenes,') ClinVar genes')
     
     built1 <- parse_pheno(d, title)
     
@@ -82,8 +85,8 @@ qq_unif_faceted_comparison_plot <- function(d1, d2, title=NULL, columns=2) {
     theme(plot.title = element_text(lineheight=3, face="bold", size=25)) +
     xlab(expression(Expected~~-log[10](italic(p)))) +
     ylab(expression(Observed~~-log[10](italic(p)))) +
-    geom_point(data = d1, aes(x=x, y=y), colour = 'black', shape=1) +
-    geom_point(data = d2, aes(x=x, y=y), colour = 'blue', shape=1) +
+    geom_point(data = d1, aes(x=x, y=y, colour = 'c1'), shape=1) +
+    geom_point(data = d2, aes(x=x, y=y, colour = 'c2'), shape=1) +
     facet_wrap(~the_facet, scales="free",ncol=columns)
   
   if (!is.null(title)) {
@@ -98,17 +101,19 @@ qq_unif_faceted_comparison_plot <- function(d1, d2, title=NULL, columns=2) {
   
   decoration <- build_decoration_data(d1)
   p <- p +
-    geom_line(mapping = aes(x=x, y=y_fdr005, colour = 'FDR = 0.05'), show_guide = TRUE) +
-    geom_line(mapping = aes(x=x, y=y_fdr010, colour = 'FDR = 0.10'), show_guide = TRUE) +
-    geom_line(mapping = aes(x=x, y=y_fdr025, colour = 'FDR = 0.25'), show_guide = TRUE) +
-    scale_colour_manual(labels = c('FDR = 0.05', 'FDR = 0.10', 'FDR = 0.25'),
-                        breaks = c('FDR = 0.05', 'FDR = 0.10', 'FDR = 0.25'),
-                        values = c("red", "orange", "yellow")) +
+    geom_line(mapping = aes(x=x, y=y_fdr005, colour = 'FDR = 0.05'), show.legend = TRUE) +
+    geom_line(mapping = aes(x=x, y=y_fdr010, colour = 'FDR = 0.10'), show.legend = TRUE) +
+    geom_line(mapping = aes(x=x, y=y_fdr025, colour = 'FDR = 0.25'), show.legend = TRUE) +
+    scale_colour_manual(labels = c('All Genes,', 'Clinvar,', 'FDR = 0.05,', 'FDR = 0.10,', 'FDR = 0.25'),
+                        breaks = c('c1', 'c2','FDR = 0.05', 'FDR = 0.10', 'FDR = 0.25'),
+                        values = c("black", "blue", "red", "orange", "yellow")) +
     theme(legend.position="bottom") + 
     theme(legend.text=element_text(size=25)) +
     theme(legend.title=element_text(size=25)) +
     theme(legend.key.size = unit(50, "points")) +
-    guides(color=guide_legend("FDR levels"))
+    theme(strip.text.x = element_text(size=18, face="bold"),
+          strip.background = element_rect(fill="white")) +
+    guides(color=guide_legend("Colors :"))
   
     
   p <- p + geom_abline(data=d1,aes(intercept=b, slope=0), colour='black') ## bonferroni

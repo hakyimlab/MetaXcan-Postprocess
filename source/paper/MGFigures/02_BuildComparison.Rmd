@@ -1,0 +1,70 @@
+---
+title: "02_BuildComparison"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(grid)
+library(gridExtra)
+source("postgre_utilities.R")
+```
+
+# Analysis
+
+This markdown holds a series of instructions to produce images from the MetaXcan paper.
+
+The necessary data can be found [here](https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz),
+or you can download it via:
+```
+# in your bash session
+$ wget https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz
+$ tar -xzvpf mgfigures_data.tar.gz
+```
+
+This data is shared across several markdown files in this folder.
+
+```{r preliminaries}
+data.dir <- 'data'
+pheno.selected <- read_tsv(file.path(data.dir,'selected-phenotypes.txt'))
+```
+
+```{r data, echo=FALSE, cache=TRUE}
+all_v6p_hapmap_phenos <- get_all_pheno_names(db_v6p_hapmap)
+d_1000G <-build_data(connection=db, phenos=all_v6p_hapmap_phenos)
+d_hapmap <- build_data(connection = db_v6p_hapmap, phenos=all_v6p_hapmap_phenos)
+phenos <- unique(d_hapmap$phenotype)
+```
+
+```{r plots, echo=FALSE, cache=TRUE}
+plots <- list()
+for (pheno in phenos) {
+  d1 <- d_1000G %>% filter(phenotype == pheno, !grepl("DGN", tissue)) %>% select(tissue, gene_name, zscore)
+  d2 <- d_hapmap %>% filter(phenotype == pheno, !grepl("DGN",tissue) ) %>% select(tissue, gene_name, zscore)
+  d <- inner_join(d1, d2, by = c("gene_name"="gene_name", "tissue", "tissue"))
+  p <- ggplot(d, aes(x=zscore.x, y=zscore.y)) +
+      geom_point()+
+      ggtitle(pheno) +
+      labs(x = "V6P 1000G", y="V6P HapMap") +
+      geom_abline(aes(slope=1, intercept=0), colour='blue') +
+      theme_bw()
+  plots[[length(plots)+1]] <- p
+}
+```
+
+```{r build plot, echo=FALSE, cache=TRUE}
+n <- length(plots)
+nCol <- floor(sqrt(n))
+if (nCol > 6) {
+  nCol = 6;
+}
+nRow <- nCol + (n %% nCol > 0)
+
+png("results/plots/1000G_vs_HapMap.png",width=nCol*200, height=nRow*200)
+do.call("grid.arrange", c(plots, ncol=nCol))
+dev.off()
+```
+

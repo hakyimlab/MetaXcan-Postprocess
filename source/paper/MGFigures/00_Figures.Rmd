@@ -1,0 +1,388 @@
+---
+title: "00_Figures"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(devtools)
+library(feather)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+source('Plots.R')
+source('postgre_utilities.R')
+source("qqunif_compare.R")
+source("utilities.R")
+source("gwas_utilities.R")
+
+"%&%" <- function(a,b) paste(a,b,sep='')
+```
+
+# Analysis
+
+This markdown holds a series of instructions to produce images from the MetaXcan paper.
+
+The necessary data can be found [here](https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz),
+or you can download it via:
+```
+# in your bash session
+$ wget https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz
+$ tar -xzvpf mgfigures_data.tar.gz
+```
+
+This data is shared across several markdown files in this folder.
+
+```{r project layout, echo=FALSE, cache=TRUE}
+results.dir <- 'results'
+if(!dir.exists(results.dir)) dir.create(results.dir)
+
+data.dir <- 'data'
+
+results.dir <- 'results'
+if(!dir.exists(results.dir)) dir.create(results.dir)
+
+plots.dir <- file.path(results.dir, 'plots')
+if(!dir.exists(plots.dir)) dir.create(plots.dir)
+
+#some configuration info and data to be considered as input
+pheno.selected <- read_tsv(file.path(data.dir,'selected-phenotypes.txt'))
+tissue.colors <- read_tsv(file.path(data.dir,'gen_tissue_colors.tsv')) # read_tsv(file.path(data.dir,'gtex_tissue_colors.txt'))
+gencode <- read.delim("data/gencode.v19.txt.gz")
+gencode$gene_key <- gsub("\\..*","",gencode$gene) 
+
+```
+
+```{r plot data, echo = FALSE, cache=TRUE}
+d <- build_data(connection = db_v6p_hapmap)
+```
+
+```{r zscore2-vs-stuff, echo=FALSE, cache=TRUE}
+master.plot <- function(output, data, title, facet, col_x, col_y, ncols, w, h) {
+  pp <- 
+    ggplot(d, aes_string(x=col_x, y=col_y)) + 
+    geom_smooth() + 
+    ggtitle(title) + 
+    facet_wrap(facet,scales="free",ncol=ncols) +
+    theme_bw()
+
+  png(output,width=w,height=h)
+  print(pp)
+  dev.off()
+}
+
+plot.zscore2.pred_perf_r2 <- function(output_name, data, facet_string, ncols, w, h) {
+  facet <- as.formula(paste("~", facet_string))
+  title <- expression(paste(zscore^{2}, " vs ", R^2))
+  master.plot(output_name, data,title, facet, "pred_perf_r2", "zscore^2", ncols, w, h)
+}
+
+plot.zscore2.pred_perf_pval <- function(output_name, data, facet_string, ncols, w, h) {
+  facet <- as.formula(paste("~", facet_string))
+  title <- expression(paste(zscore^{2}, " vs ", p-value))
+  master.plot(output_name, data,title, facet, "rank(pred_perf_pval)", "zscore^2", ncols, w, h)
+}
+
+plot.zscore2.pred_perf_r2(file.path(plots.dir, "zscore2-vs-pred-perf-R2-by-phenotype.png"), data, "phenotype", 5, 1200, 1440)
+plot.zscore2.pred_perf_r2(file.path(plots.dir, "zscore2-vs-pred-perf-R2-by-tissue.png"), data, "tissue", 7, 1120, 1280)
+plot.zscore2.pred_perf_pval(file.path(plots.dir, "zscore2-vs-pred-perf-pval-by-phenotype.png"), data, "phenotype", 5, 1200, 1440)
+plot.zscore2.pred_perf_pval(file.path(plots.dir, "zscore2-vs-pred-perf-pval-by-tissue.png"), data, "tissue", 7, 1120, 1280)
+```
+
+```{r sample pheno and tissue, echo=FALSE, cache=TRUE}
+build_selected_pheno_and_tissue <- function(data) {
+  selected_pheno <- 'CARDIoGRAM_C4D_CAD_ADDITIVE'
+  by_pheno <- data[data$phenotype == selected_pheno,]
+  p1 <- ggplot(by_pheno, aes(x = pred_perf_r2, zscore^2)) + 
+    geom_smooth() +
+    ggtitle(selected_pheno) +
+    labs(x="Prediction Performance R2") +
+    theme_bw()
+  p3 <- ggplot(by_pheno, aes(rank(pred_perf_pval), zscore^2)) + 
+    geom_smooth()  +
+    ggtitle(selected_pheno) +
+    labs(x="Ranked Prediction Performance pvalue") +
+    theme_bw()
+  
+  selected_tissue <- 'Artery_Aorta'
+  by_tissue <- data[grepl(selected_tissue, data$tissue),]
+  p2 <- ggplot(by_tissue, aes(x = pred_perf_r2, zscore^2)) + 
+    geom_smooth() + 
+    ggtitle(selected_tissue) +
+    labs(x="Prediction Performance R2") +
+    theme_bw()
+  p4 <- ggplot(by_tissue, aes(rank(pred_perf_pval), zscore^2)) + 
+    geom_smooth() +
+    ggtitle(selected_tissue) +
+    labs(x="Ranked Prediction Performance pvalue") + 
+    theme_bw()
+  png(file.path(plots.dir, "selected-examples-r2-pval.png"), width=800, height=800)
+  #multiplot(p1, p2, ncol = 2)
+  #print(g)
+  grid.arrange(p1, p2, p3, p4, ncol =2, top = "Sample trend")
+  dev.off()
+}
+
+build_selected_pheno_and_tissue(d)
+```
+
+```{r clinvar, echo=FALSE, cache=TRUE}
+clinvar <- read_tsv(file.path(data.dir,'/clinvar/gene_condition_source_id'))
+clinvargene <- clinvar %>% select(GeneSymbol) %>% mutate(in.clinvar = TRUE) %>% unique()
+chosen_clinvar_tags <- c("ALZH", "BMI",  "CROHN", "ULCERC", "T2D", "RA", "AMD", "AUTIS", "SCZ")
+clinvar_pheno_selected <- pheno.selected %>% filter(pheno.short %in% chosen_clinvar_tags)
+clinvar_data <- build_qqunif_data(d, clinvar,  clinvar_pheno_selected,'clinvar')
+```
+
+```{r clinvar plot, echo=FALSE, cache=TRUE}
+(function(clinvar_data) {
+  d1 <- clinvar_data$d1
+  d2 <- clinvar_data$d2
+  facets <- unique(d1$the_facet)
+  n <- length(unique(d1$the_facet))
+  nCol <- as.integer(ceiling(sqrt(n)))
+  if (nCol > 6) {
+    nCol = 6;
+  }
+  nRow <- floor(n/nCol) + (n %% nCol > 0)
+  clinvar_plot <- qq_unif_faceted_comparison_plot(d1, d2,
+    title="QQ Uniform plot for MetaXcan results across all genes, vs results for genes in ClinVar",
+    columns=nCol)
+
+  png(file.path(plots.dir, "clinvar-vs-metaxcan.png"), width=nCol*400, height=nRow*400)
+  print(clinvar_plot)
+  dev.off()
+}) (clinvar_data)
+```
+
+```{r clinvar_table, echo = FALSE, cache = TRUE}
+build_clinvar_table <- function(data, pheno.selected) {
+  clinvar_t <- data.frame()
+  for (pheno in pheno.selected$pheno) {
+    disname <- pheno.selected$search.term[pheno.selected$pheno == pheno]
+    if (is.na(disname)) {
+      next;
+    }
+    geneset = find.clinvar.genes(clinvar, disname)
+    p_d <- data %>% 
+      filter(phenotype == pheno, gene_name %in% geneset) %>% 
+      group_by(gene_name) %>% 
+      top_n(n = 1, wt = -pval) %>%
+      arrange(pval)
+    #separate filtered version with only reasonably trustable pvals
+    p_f <- p_d %>% filter(pval < 0.05)
+    p_f <- p_f[!is.na(p_f$pval),]
+    l <- length(p_f$gene_name)
+    if (l == 0) {
+      next
+    }
+    s <- 5
+    if (l < s) {
+      s <- l
+    }
+    gene_count <- length(p_d$gene_name)
+    clinvar_t <- rbind(clinvar_t, data.frame(disease = as.character(simpleCap(disname)),
+                                           key = pheno.selected[pheno.selected$pheno == pheno,]$pheno.short,
+                                           gene_count = gene_count,
+                                           top_genes = p_d$gene_name[1:s],
+                                           top_pval = p_d$pval[1:s],
+                                           top_tissue = p_d$tissue[1:s]))
+  }
+  clinvar_t <- clinvar_t %>% arrange(as.character(disease), as.character(key), top_pval)
+  clinvar_t  
+}
+clinvar_table <- build_clinvar_table(d, clinvar_pheno_selected)
+write.table(clinvar_table, file.path(results.dir,"clinvar_table.txt"), row.names = FALSE, quote=FALSE, sep = "\t")
+
+```
+
+```{r heatmap, echo = FALSE, cache =TRUE}
+# from 01: {r generate table of meanZ2,number of significant, by pheno and tissue}
+build_heatmap_data <- function(d) {
+  result <- data.frame()
+  for(phenoname in pheno.selected$pheno) {
+    temp <- d[d$pheno == phenoname,]
+  
+    t <- temp %>% 
+        group_by(tissue) %>% 
+        summarise(meanZ2 = mean(zscore^2), n.signif.BF = sum(pval< 0.05/2e5), n.signif.e4 = sum(pval<1e-4),
+                  meanZ2.thres.1 = mean(zscore^2*(abs(zscore)>1) ), meanZ2.thres.2 = mean(zscore^2*(abs(zscore)>2) ), n.genes = n())
+    if (length(t$meanZ2) == 0)
+      next;
+    t$phenotype <- phenoname
+    result <- rbind(result, t)
+  }
+  
+  return(result)
+}
+
+plot_heatmap_data <- function(data, filename, h=800, w=800) {
+  t <- data %>%
+    left_join(tissue.colors %>% 
+                rename(tissue.short = tissue_site_detail_abbr) %>%
+                select(tissue_site_detail_id,tissue.short),by=c("tissue"="tissue_site_detail_id")) %>% 
+    left_join(pheno.selected %>% 
+    select(pheno,pheno.short),by=c("phenotype"="pheno"))
+  
+  t <- t %>% filter(!(pheno.short %in% c('HEIGHT','RA')))
+  p <- t %>% ggplot(aes(pheno.short, tissue.short,fill=meanZ2)) +
+      geom_tile() + 
+      scale_fill_continuous(low="white", high="blue") + 
+      theme(axis.text.x = element_text(angle = 90, vjust = 1, lineheight = 10,hjust = 1),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks = element_blank()) +
+      ggtitle('Mean Z2')
+
+  png(filename, height=h, width=w)
+  print(p)
+  dev.off()
+}
+
+hd <- build_heatmap_data(d)
+plot_heatmap_data(hd, 'results/plots/table-absZ2-tissue-phenotype-no-high.png')
+```
+
+```{r heatmap top eqtl, echo = FALSE, cache =TRUE}
+d_prs <- build_data(db_prs)
+#d_prs_gtex <- d_prs[!grepl('franzen', d_prs$tissue),]
+#d_prs_franzen <- d_prs[grepl('franzen', d_prs$tissue),]
+
+```
+
+```{r prs heatmap, echo = FALSE, cache = TRUE}
+hd_prs <- build_heatmap_data(d_prs)
+
+plot_heatmap_data(hd_prs, 'results/plots/table-absZ2-tissue-phenotype-no-high-topeqtl.png', h=1000)
+```
+
+```{r prs2, echo=FALSE, cache=TRUE}
+d_prs2 <- build_data(db_prs2)
+d_prs2$tissue <- gsub("_VAF", "-eqtl-vaf", d_prs2$tissue )
+d_prs2$tissue <-  gsub("_SKLM", "-eqtl-sklm", d_prs2$tissue )
+d_prs2$tissue <-  gsub("_SF", "-eqtl-sf", d_prs2$tissue )
+d_prs2$tissue <-  gsub("_MAM", "-eqtl-mam", d_prs2$tissue )
+d_prs2$tissue <-  gsub("_LIV", "-eqtl-liv", d_prs2$tissue )
+d_prs2$tissue <-  gsub("_Blood", "-eqtl-blood", d_prs2$tissue )
+d_prs2$tissue <-  gsub("_AOR", "-eqtl-aor", d_prs2$tissue )
+d_prs2$tissue <- paste0("BETA_BEST_",d_prs2$tissue)
+hd_prs2 <- build_heatmap_data(d_prs2)
+plot_heatmap_data(hd_prs2, 'results/plots/table-absZ2-tissue-phenotype-no-high-topeqtl2.png')
+```
+
+```{r trait correlation, echo = FALSE, cache = TRUE}
+build_phenotype_correlation_plot <- function(output_path, data, tissue, selected_phenos=pheno.selected) {
+  t <- data[data$tissue == tissue,]
+  c <- t %>% 
+    select(gene_name,zscore,phenotype) %>%
+    filter(phenotype %in% selected_phenos$pheno)  %>%
+    filter(abs(zscore)>0) %>%
+    spread(key=phenotype,value=zscore) %>%
+    select(-gene_name)
+  corr <- cor(c, use='complete')
+  tileplot.order(output_path, corr, selected_phenos, "Correlation between phenotype's zscores, for DGN_WB")
+}
+
+build_phenotype_correlation_plot(file.path(plots.dir,"phenotype_correlation.png"), d, "DGN_WB", pheno.selected)
+```
+
+```{r load sqlite models, echo=FALSE, cache=TRUE}
+build_allele_key <- function(data.frame) {
+  allele_key <- sprintf("%s%s",data.frame$ref_allele, data.frame$eff_allele)
+  striHelper <- function(x) stri_c(x[stri_order(x)], collapse = "")
+  allele_key <- vapply(stri_split_boundaries(allele_key, type = "character"), striHelper, "")
+  return(allele_key)
+}
+
+load_models <- function(folder) {
+  names <- list.files(folder)
+  paths <- file.path(folder,names)
+  dbs <- list()
+  for(i in 1:length(paths)) {
+    path <- paths[i]
+    con <- dbConnect(RSQLite::SQLite(),path)
+    query <- "SELECT e.gene, e.genename, w.rsid, w.ref_allele, w.eff_allele FROM extra AS e INNER JOIN weights as w on w.gene = e.gene"
+    results <- dbGetQuery(con, query)
+    results$allele_key <- build_allele_key(results)
+    #match naming convention
+    name <- gsub("_0.5.db", "", names[i])
+    name <- gsub("TW_", "", name)
+    name <- gsub("-", "_", name)
+    dbs[[name]] <- results
+    dbDisconnect(con)
+  }
+  return(dbs)
+}
+
+dbs <- load_models("data/dbs")
+```
+
+
+```{r association vs snp compare, echo=FALSE, cache=TRUE}
+find_genes_more_significant_than_gwas <- function(gwas, data, pheno_tag, window_semi=1e6) {
+  m_results_p <- data %>% 
+    filter(phenotype == pheno_tag) %>% 
+    select(phenotype, gene, gene_name, tissue, pval)
+  
+  m_results_p <- m_results_p %>% inner_join(gencode, by = c("gene" = "gene_key", "gene_name"="gene_name"))
+  #explicit logic asdplyr doesnt handel inequality join
+  # and sqldf is too solow
+  n <- length(m_results_p$gene)
+  m <- m_results_p %>% filter(pval < 0.05/n) %>% group_by(gene) %>% top_n(n = 1, wt = -pval)
+  m <- m %>%  
+    mutate(window_start = ifelse(start_location-window_semi<0, 0, start_location-window_semi),
+            window_end = end_location+window_semi)
+  top_snp <- data.frame()
+  for (i in 1:length(m$gene)) {
+    the_gene <- m$gene[i]
+    row <- m %>% filter(gene == the_gene)
+    g_chr <- row$chr[1]
+    w_s <- row$window_start[1]
+    w_e <- row$window_end[1]
+    snps <- gwas %>% filter(chrx==g_chr, w_s<=start_position, start_position<=w_e) 
+    snps <- snps[which.min(snps$pvalue),]
+    if (length(snps$rsid) <1) next
+    if (snps$pvalue[1] < m$pval[i]) next
+    top_snp <- rbind(top_snp, data.frame(gene=the_gene, top_rsid=snps$rsid[1], top_snp_pvalue=snps$pvalue[1]))
+    print(paste0(i," ", m$gene_name[i]))
+  }
+  m <- m %>% inner_join(top_snp, by="gene") %>%
+    select(phenotype, gene, tissue, gene_name, pval, top_rsid, top_snp_pvalue)
+  return(m)
+}
+
+(function() {
+  cad_gwas <- load_cardiogram_c4d("data/GWAS/CARDIoGRAM/cad.additive.Oct2015.pub/cad.add.160614.website.txt.gz")
+  signif <- find_genes_more_significant_than_gwas(cad_gwas, d, "CARDIoGRAM_C4D_CAD_ADDITIVE" )
+  signif <- signif %>% arrange(-top_snp_pvalue)
+  o <- signif %>% select(gene_name, tissue, pval, top_rsid, top_snp_pvalue)
+  write.table(o, "results/results_coronary.txt", row.names = FALSE, quote=FALSE, sep = "\t")
+  
+  # pgc_bip_gwas <- load_pgc_bip("data/GWAS/PGC/BIP/pgc.bip.full.2012-04.txt.gz")
+  # signif <- find_genes_more_significant_than_gwas(pgc_bip_gwas, d, "pgc.bip.full.2012-04")
+  # signif <- signif %>% arrange(-top_snp_pvalue)
+  # write.table(signif, "results/results_coronary.txt", row.names = FALSE, quote=FALSE, sep = "\t")
+})()
+
+```
+
+```{r snp vs association comparison}
+# asc_result_report <- function(save_path, data, selected_phenos) {
+#   t <- selected_phenos %>% select(pheno, label)
+#   g <- data %>% inner_join(t, by = c("phenotype"="pheno"))
+#   
+#   s <- g %>% group_by(phenotype)
+#   s <- s %>% top_n(n = 5, wt = -association_pvalue) %>% arrange(phenotype, association_pvalue)
+#   s <- data.frame(s) %>% select(label,genename,tissue,top_snp,association_pvalue,snp_pvalue)
+#   
+#   s$tissue <- gsub("_", " ", s$tissue)
+#   write.table(s, save_path, row.names = FALSE, quote=FALSE, sep = "\t"
+# }
+# 
+# asc_result_report(file.path(results.dir,"association_vs_snp.txt"), asc_result, pheno.selected)
+```
+

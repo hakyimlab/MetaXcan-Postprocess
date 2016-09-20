@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.html
+*_cache
+*_files
+
+mgfigures_data*
+data
+results
+Previous

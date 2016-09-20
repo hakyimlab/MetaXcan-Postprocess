@@ -1,0 +1,134 @@
+---
+title: "00_Figures"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(devtools)
+library(feather)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(stringi)
+source('Plots.R')
+source('postgre_utilities.R')
+source("qqunif_compare.R")
+source("utilities.R")
+
+"%&%" <- function(a,b) paste(a,b,sep='')
+```
+
+# Analysis
+
+
+
+```{r project layout, echo=FALSE}
+results.dir <- 'results'
+if(!dir.exists(results.dir)) dir.create(results.dir)
+
+data.dir <- 'data'
+
+results.dir <- 'results'
+if(!dir.exists(results.dir)) dir.create(results.dir)
+
+plots.dir <- file.path(results.dir, 'plots')
+if(!dir.exists(plots.dir)) dir.create(plots.dir)
+
+#some configuration info and data to be considered as input
+pheno.selected <- read_tsv(file.path(data.dir,'selected-phenotypes.txt'))
+tissue.colors <- read_tsv(file.path(data.dir,'gen_tissue_colors.tsv')) # read_tsv(file.path(data.dir,'gtex_tissue_colors.txt'))
+```
+
+```{r plot data, echo = FALSE, cache=TRUE}
+d <- build_data(connection = db_v6p_hapmap)
+```
+
+```{r load sqlite models, echo=FALSE, cache=TRUE}
+load_models <- function(folder) {
+  names <- list.files(folder)
+  paths <- file.path(folder,names)
+  dbs <- list()
+  for(i in 1:length(paths)) {
+    path <- paths[i]
+    con <- dbConnect(RSQLite::SQLite(),path)
+    query <- "SELECT e.gene, e.genename, w.rsid, w.ref_allele, w.eff_allele FROM extra AS e INNER JOIN weights as w on w.gene = e.gene"
+    results <- dbGetQuery(con, query)
+    results$allele_key <- build_allele_key(results)
+    #match naming convention
+    name <- gsub("_0.5.db", "", names[i])
+    name <- gsub("TW_", "", name)
+    name <- gsub("-", "_", name)
+    dbs[[name]] <- results
+    dbDisconnect(con)
+  }
+  return(dbs)
+}
+
+dbs <- load_models("data/dbs")
+```
+
+```{r association vs snp compare, echo=FALSE, cache=TRUE}
+association_vs_snp_comparison <- function(folder, data, dbs) {
+  phenos <- unique(data$phenotype)
+  tissues <- unique(data$tissue)
+  results <- data.frame()
+  for (the_pheno in phenos) {
+    #print(the_pheno)
+    beta_folder <- sprintf("%s/beta_%s", folder, the_pheno)
+    path <- list.files(sprintf(beta_folder, folder, the_pheno))[[1]]
+    path <- sprintf("%s/%s", beta_folder, path)
+    beta <- read.delim(path, sep=" ")
+    beta$pvalue <- 2*pnorm(-abs(beta$beta_z))
+    beta$allele_key <- build_allele_key(beta)
+    
+    m_results_p <- data %>% 
+        filter(phenotype == the_pheno) %>% 
+        select(phenotype, gene, gene_name, tissue, pval)
+    for (the_tissue in tissues) {
+      the_tissue <- gsub("-", "_", the_tissue)
+      #print(the_tissue)
+      m_results <- m_results_p %>% filter(tissue == the_tissue)
+      db <- dbs[[the_tissue]]
+      db$gene_key <- gsub("\\..*","",db$gene) #remove version
+      i <- inner_join(m_results, db, by=c("gene" = "gene_key"))
+      i <- inner_join(i, beta, by =c("rsid" = "rsid", "allele_key" = "allele_key"))
+      i <- i %>%
+        select(phenotype, gene, genename, tissue, rsid, pval, pvalue) %>%
+        rename(association_pvalue = pval, snp_pvalue = pvalue)
+      r <- i %>% group_by(genename) %>%
+              top_n(n = 1, wt = -snp_pvalue) %>%
+              arrange(snp_pvalue) %>%
+              rename(top_snp = rsid) %>%
+              filter(association_pvalue < snp_pvalue)
+      print(length(r$gene))
+      results <- rbind(results,data.frame(r))
+    }
+  }
+  return(results)
+}
+
+asc_result <- association_vs_snp_comparison("data/betas", d, dbs)
+```
+
+```{r snp vs association comparison}
+asc_result_report <- function(save_path, data, selected_phenos) {
+  t <- selected_phenos %>% select(pheno, label)
+  g <- data %>% inner_join(t, by = c("phenotype"="pheno"))
+  
+  s <- g %>% group_by(phenotype)
+  s <- s %>% top_n(n = 5, wt = -association_pvalue) %>% arrange(phenotype, association_pvalue)
+  s <- data.frame(s) %>% select(label,genename,tissue,top_snp,association_pvalue,snp_pvalue)
+  
+  s$tissue <- gsub("_", " ", s$tissue)
+  write.table(s, save_path, row.names = FALSE, quote=FALSE, sep = "\t")
+}
+
+asc_result_report(file.path(results.dir,"association_vs_snp.txt"), asc_result, pheno.selected)
+```
+
+

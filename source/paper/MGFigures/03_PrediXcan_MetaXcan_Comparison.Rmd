@@ -14,6 +14,19 @@ library(stringi)
 source("Plots.R")
 ```
 
+# Analysis
+
+This markdown holds a series of instructions to produce images from the MetaXcan paper.
+
+The necessary data can be found [here](https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz),
+or you can download it via:
+```
+# in your bash session
+$ wget https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz
+$ tar -xzvpf mgfigures_data.tar.gz
+```
+
+This data is shared across several markdown files in this folder.
 
 ```{r load_predixcan_data, echo=FALSE, cache=TRUE}
 PREDIXCAN_T <- "data/predixcan_results/predixcan_%s_%s_dgnwb.txt"
@@ -117,7 +130,7 @@ igrowth_comparison_plot_data <- build_predixcan_metaxcan_plot_data(predixcan_igr
   pt1d <- read.delim("data/predixcan_results/PrediXcan_T1D_DGNWholeBlood_EN0.5.txt", sep=" ")
   mt1d <- read.csv("data/metaxcan_results/t1d-gwas_scaled.csv")
   t1d <- merge_p_m(pt1d, mt1d, by_p="gene",by_m="gene_name")
-  t1d$the_facet <- "Type I Diabetes"
+  t1d$the_facet <- "Type 1 Diabetes"
   
   data <- rbind(bd, t1d)
   plot <- m_p_facet_plot(data, 
@@ -127,5 +140,5 @@ igrowth_comparison_plot_data <- build_predixcan_metaxcan_plot_data(predixcan_igr
   png("results/plots/predixcan_metaxcan_t1d_bd_comparison.png", width=600, height=1200)
   print(plot)
   dev.off()
-})() 
+})()
 ```

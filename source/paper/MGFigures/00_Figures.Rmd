@@ -25,7 +25,17 @@ source("gwas_utilities.R")
 
 # Analysis
 
+This markdown holds a series of instructions to produce images from the MetaXcan paper.
 
+The necessary data can be found [here](https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz),
+or you can download it via:
+```
+# in your bash session
+$ wget https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz
+$ tar -xzvpf mgfigures_data.tar.gz
+```
+
+This data is shared across several markdown files in this folder.
 
 ```{r project layout, echo=FALSE, cache=TRUE}
 results.dir <- 'results'

@@ -13,11 +13,19 @@ library(gridExtra)
 source("postgre_utilities.R")
 ```
 
-## R Markdown
+# Analysis
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This markdown holds a series of instructions to produce images from the MetaXcan paper.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+The necessary data can be found [here](https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz),
+or you can download it via:
+```
+# in your bash session
+$ wget https://s3.amazonaws.com/imlab-open/Data/MetaXcan/paper_data/mgfigures_data.tar.gz
+$ tar -xzvpf mgfigures_data.tar.gz
+```
+
+This data is shared across several markdown files in this folder.
 
 ```{r preliminaries}
 data.dir <- 'data'
@@ -47,7 +55,7 @@ for (pheno in phenos) {
 }
 ```
 
-```{r build plot}
+```{r build plot, echo=FALSE, cache=TRUE}
 n <- length(plots)
 nCol <- floor(sqrt(n))
 if (nCol > 6) {

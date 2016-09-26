@@ -16,10 +16,14 @@ lm_eqn <- function(df){
 }
 
 m_p_plot <- function(data, r_x=-2, r_y=1, r_font_size=10, r_support=NULL,
-      title_font_size=10, facet_font_size=12, axis_text_size=10) {
-  p <- ggplot(data, aes(x=metaxcan_z, y=predixcan_z)) +
-    theme_bw() +
-    theme(
+      title_font_size=10, facet_font_size=12, axis_text_size=10, theme=NULL) {
+  p <- ggplot(data, aes(x=metaxcan_z, y=predixcan_z))
+  if (is.null(theme)) {
+    p <- p + theme_bw()
+  } else {
+    p <- p + theme
+  }
+  p <- p +  theme(
       axis.text = element_text(size = axis_text_size),
       axis.title.y = element_text(size= title_font_size, face="bold", margin=margin(0,20,0,10)),
       axis.title.x = element_text(size= title_font_size, face="bold", margin=margin(20,0,10,0)),
@@ -44,12 +48,12 @@ m_p_grid_plot <- function(data, r_x=-2, r_y=1, r_font_size=10,
 }
 
 m_p_facet_plot <- function(data, r_x=-2, r_y=1, r_font_size=10, 
-    title_font_size=10, facet_font_size=12, axis_text_size=10, columns=1) {
+    title_font_size=10, facet_font_size=12, axis_text_size=10, columns=1, theme = NULL) {
   
   support <- data %>% distinct(the_facet, R2)
   p <- m_p_plot(data, r_x, r_y, r_font_size, support, 
-                title_font_size, facet_font_size, axis_text_size) +
-    facet_wrap(~the_facet,scales="fixed",ncol=columns) +
+                title_font_size, facet_font_size, axis_text_size, theme = theme) +
+    facet_wrap(~the_facet,scales="fixed", ncol=columns) +
     theme(panel.margin = unit(2, "lines"))
   return(p)
 }

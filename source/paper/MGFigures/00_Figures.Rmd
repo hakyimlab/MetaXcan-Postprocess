@@ -53,44 +53,76 @@ if(!dir.exists(plots.dir)) dir.create(plots.dir)
 pheno.selected <- read_tsv(file.path(data.dir,'selected-phenotypes.txt'))
 tissue.colors <- read_tsv(file.path(data.dir,'gen_tissue_colors.tsv')) # read_tsv(file.path(data.dir,'gtex_tissue_colors.txt'))
 gencode <- read.delim("data/gencode.v19.txt.gz")
-gencode$gene_key <- gsub("\\..*","",gencode$gene) 
-
+gencode$gene_key <- gsub("\\..*","",gencode$gene)
 ```
 
 ```{r plot data, echo = FALSE, cache=TRUE}
-d <- build_data(connection = db_v6p_hapmap)
+d <- build_data(connection = db_v6p_hapmap)  
 ```
 
 ```{r zscore2-vs-stuff, echo=FALSE, cache=TRUE}
-master.plot <- function(output, data, title, facet, col_x, col_y, ncols, w, h) {
+master.plot <- function(output, pdata, title, facet, col_x, col_y, ncols, w, h,
+                        facet_config, axis_text_config) {
   pp <- 
-    ggplot(d, aes_string(x=col_x, y=col_y)) + 
+    ggplot(pdata, aes_string(x=col_x, y=col_y)) + 
     geom_smooth() + 
     ggtitle(title) + 
     facet_wrap(facet,scales="free",ncol=ncols) +
-    theme_bw()
+    theme_bw() +
+    theme(plot.title = element_text(size=36, face = "bold"),
+      axis.text = axis_text_config,
+      axis.title.y = element_text(size=24),
+      axis.title.x = element_text(size=24),
+      strip.text = facet_config)
 
   png(output,width=w,height=h)
   print(pp)
   dev.off()
 }
 
-plot.zscore2.pred_perf_r2 <- function(output_name, data, facet_string, ncols, w, h) {
+plot.zscore2.pred_perf_r2 <- function(output_name, pdata, facet_string, ncols, w, h, facet_config, axis_config) {
   facet <- as.formula(paste("~", facet_string))
   title <- expression(paste(zscore^{2}, " vs ", R^2))
-  master.plot(output_name, data,title, facet, "pred_perf_r2", "zscore^2", ncols, w, h)
+  master.plot(output_name, pdata,title, facet, "pred_perf_r2", "zscore^2", ncols, w, h, facet_config, axis_config)
 }
 
-plot.zscore2.pred_perf_pval <- function(output_name, data, facet_string, ncols, w, h) {
+plot.zscore2.pred_perf_pval <- function(output_name, pdata, facet_string, ncols, w, h, facet_config, axis_config) {
   facet <- as.formula(paste("~", facet_string))
   title <- expression(paste(zscore^{2}, " vs ", p-value))
-  master.plot(output_name, data,title, facet, "rank(pred_perf_pval)", "zscore^2", ncols, w, h)
+  master.plot(output_name, pdata,title, facet, "rank(pred_perf_pval)", "zscore^2", ncols, w, h, facet_config, axis_config)
 }
 
-plot.zscore2.pred_perf_r2(file.path(plots.dir, "zscore2-vs-pred-perf-R2-by-phenotype.png"), data, "phenotype", 5, 1200, 1440)
-plot.zscore2.pred_perf_r2(file.path(plots.dir, "zscore2-vs-pred-perf-R2-by-tissue.png"), data, "tissue", 7, 1120, 1280)
-plot.zscore2.pred_perf_pval(file.path(plots.dir, "zscore2-vs-pred-perf-pval-by-phenotype.png"), data, "phenotype", 5, 1200, 1440)
-plot.zscore2.pred_perf_pval(file.path(plots.dir, "zscore2-vs-pred-perf-pval-by-tissue.png"), data, "tissue", 7, 1120, 1280)
+(function(){
+  #Convert the phenotype and tissue strings to wrapped forms
+  to_wrapped <- function(strings, length) {
+    s <- stri_replace_all_fixed(strings, "_", " ")
+    s <- vapply(s, function(x){
+      w <- stri_wrap(x, length, 0.0)
+      return(paste(w, collapse="\n"))
+    },FUN.VALUE="")
+    s <- stri_replace_all_fixed(s, " ", "_")
+    return(s)
+  }
+  data_s <- data.frame(d)
+  up <- unique(data_s$phenotype)
+  tp <- to_wrapped(up, 25)
+  dp <- data.frame(phenotype=up, n_phenotype=tp)
+  data_s <- data_s %>% inner_join(dp, by ="phenotype") %>% select(-phenotype) %>% rename(phenotype=n_phenotype)
+  ut <- unique(data_s$tissue)
+  tt <- to_wrapped(ut, 25)
+  dt <- data.frame(tissue=ut, n_tissue=tt)
+  data_s <- data_s %>% inner_join(dt, by ="tissue") %>% select(-tissue) %>% rename(tissue=n_tissue)
+
+  
+  pheno_facet_config <- element_text(size=14, face="bold")
+  pheno_axis_config <- element_text(size=12)
+  tissue_facet_config <- element_text(size=12)
+  tissue_axis_config <- element_text(size=8)
+  plot.zscore2.pred_perf_r2(file.path(plots.dir, "zscore2-vs-pred-perf-R2-by-phenotype.png"), data_s, "phenotype", 5, 1200, 1440, pheno_facet_config, pheno_axis_config)
+  plot.zscore2.pred_perf_r2(file.path(plots.dir, "zscore2-vs-pred-perf-R2-by-tissue.png"), data_s, "tissue", 7, 1120, 1280, tissue_facet_config, tissue_axis_config)
+  plot.zscore2.pred_perf_pval(file.path(plots.dir, "zscore2-vs-pred-perf-pval-by-phenotype.png"), data_s, "phenotype", 5, 1200, 1440, pheno_facet_config, pheno_axis_config)
+  plot.zscore2.pred_perf_pval(file.path(plots.dir, "zscore2-vs-pred-perf-pval-by-tissue.png"), data_s, "tissue", 7, 1120, 1280, tissue_facet_config, tissue_axis_config)
+})()
 ```
 
 ```{r sample pheno and tissue, echo=FALSE, cache=TRUE}
@@ -156,14 +188,14 @@ clinvar_data <- build_qqunif_data(d, clinvar,  clinvar_pheno_selected,'clinvar')
   png(file.path(plots.dir, "clinvar-vs-metaxcan.png"), width=nCol*400, height=nRow*400)
   print(clinvar_plot)
   dev.off()
-}) (clinvar_data)
+}) (clinvar_data) 
 ```
 
 ```{r clinvar_table, echo = FALSE, cache = TRUE}
-build_clinvar_table <- function(data, pheno.selected) {
+build_clinvar_table <- function(data, selected_pheno) {
   clinvar_t <- data.frame()
-  for (pheno in pheno.selected$pheno) {
-    disname <- pheno.selected$search.term[pheno.selected$pheno == pheno]
+  for (pheno in selected_pheno$pheno) {
+    disname <- selected_pheno$search.term[selected_pheno$pheno == pheno]
     if (is.na(disname)) {
       next;
     }
@@ -186,7 +218,7 @@ build_clinvar_table <- function(data, pheno.selected) {
     }
     gene_count <- length(p_d$gene_name)
     clinvar_t <- rbind(clinvar_t, data.frame(disease = as.character(simpleCap(disname)),
-                                           key = pheno.selected[pheno.selected$pheno == pheno,]$pheno.short,
+                                           key = selected_pheno[selected_pheno$pheno == pheno,]$pheno.short,
                                            gene_count = gene_count,
                                            top_genes = p_d$gene_name[1:s],
                                            top_pval = p_d$pval[1:s],
@@ -198,6 +230,32 @@ build_clinvar_table <- function(data, pheno.selected) {
 clinvar_table <- build_clinvar_table(d, clinvar_pheno_selected)
 write.table(clinvar_table, file.path(results.dir,"clinvar_table.txt"), row.names = FALSE, quote=FALSE, sep = "\t")
 
+build_clinvar_table_2 <- function(data, selected_pheno) {
+  clinvar_t <- data.frame()
+  for (pheno in selected_pheno$pheno) {
+    disname <- selected_pheno$search.term[selected_pheno$pheno == pheno]
+    if (is.na(disname)) {
+      next;
+    }
+    geneset = find.clinvar.genes(clinvar, disname)
+    p_d <- data %>% 
+      filter(phenotype == pheno, gene_name %in% geneset) %>% 
+      group_by(gene_name) %>% 
+      arrange(pval)
+
+    clinvar_disease <- as.character(simpleCap(disname))
+    label <-  selected_pheno[selected_pheno$pheno == pheno,]$label
+    clinvar_t <- rbind(clinvar_t, data.frame(clinvar_disease = clinvar_disease,
+                                           pheno =label,
+                                           gene = p_d$gene_name,
+                                           pval = p_d$pval,
+                                           tissue = p_d$tissue))
+  }
+  clinvar_t <- clinvar_t %>% arrange(as.character(clinvar_disease), as.character(pheno), pval)
+  clinvar_t  
+}
+clinvar_table_2 <- build_clinvar_table_2(d, clinvar_pheno_selected)
+write.table(clinvar_table_2, file.path(results.dir,"clinvar_encrichment.txt"), row.names = FALSE, quote=FALSE, sep = ",")
 ```
 
 ```{r heatmap, echo = FALSE, cache =TRUE}

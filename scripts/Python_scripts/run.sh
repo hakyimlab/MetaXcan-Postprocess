@@ -3,7 +3,7 @@
 
 if [ -z $1 ]; then
     echo "Usage: ./run.sh <project name>"
-    echo "(only single word, such as breastcancer, diabetase, ovarycancer)"
+    echo "(e.g ./run.sh ovarican_cancer)"
 
 else
     python run_MetaXcanPostprocessing.py $1

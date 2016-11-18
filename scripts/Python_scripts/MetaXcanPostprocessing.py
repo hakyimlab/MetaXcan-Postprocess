@@ -1,5 +1,5 @@
 ''' 
-This script wraps some R packages such as annotables and qqman, or some R codes in python environment using rpy2
+This python script wraps some R packages such as annotables and qqman, or some R codes in python environment using rpy2
 Please see more documentation at http://rpy2.readthedocs.org/en/version_2.7.x/ 
 ''' 
 
@@ -8,9 +8,15 @@ Please see more documentation at http://rpy2.readthedocs.org/en/version_2.7.x/
 #### Software prerequistes #####
 ################################
 '''
-# rpy2: pip install rpy2
-# annotables: install.packages('annotables')
-# dplyr: install.packages('dplyr')
+# python packages: 
+# rpy2:       pip install rpy2
+
+# R packages: 
+# annotables:     install.packages("devtools")
+#                 devtools::install_github("stephenturner/annotables")
+# dplyr:          install.packages('dplyr')
+# ggplot2:        install.packages("tidyverse") 
+# qqman:          install.packages("qqman") 
 
 
 '''
@@ -26,7 +32,6 @@ from helpers import *
 from datetime import datetime 
 import os, pandas, glob, sqlite3, shutil, subprocess
 import uuid as myuuid 
-import pandas 
 
 pandas2ri.activate()
 
@@ -42,17 +47,15 @@ def annotate_metaxcan_result(projectName):
 
     global projectID 
 
-    # load modules 
+    # load R packages  
     importr('annotables')
     importr('dplyr',  on_conflict="warn")
 
     # current path 
     currentPath = os.getcwd()
 
-    # back to root path 
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('..')
+    # root path 
+    os.chdir('../../../')
     root_path = os.getcwd()
 
     # input path 
@@ -87,10 +90,10 @@ def annotate_metaxcan_result(projectName):
         robjects.globalenv['dataframe'] = grch37
 
         # annotating  
-        if inputFilename == 'DGN-WB-unscaled.csv':
-            annotatedData = r("inner_join(data[, c('gene', 'gene_name', 'zscore', 'pvalue', 'model_n', 'pred_perf_R2')], grch37[, c('symbol', 'chr', 'start', 'end')], by=c('gene'='symbol'))")
-        else:
-            annotatedData = r("inner_join(data[, c('gene', 'gene_name', 'zscore', 'pvalue', 'model_n', 'pred_perf_R2')], grch37[, c('ensgene', 'chr', 'start', 'end')], by =c('gene'='ensgene'))")
+        # if inputFilename == 'xxxxxDGN-WB-unscaled.csv':
+        #     annotatedData = r("inner_join(data[, c('gene', 'gene_name', 'zscore', 'effect_size', 'pvalue', 'n_snps_in_model', 'pred_perf_p', 'pred_perf_R2')], grch37[, c('symbol', 'chr', 'start', 'end')], by=c('gene'='symbol'))")
+        # else:
+        annotatedData = r("inner_join(data[, c('gene', 'gene_name', 'zscore', 'effect_size', 'pvalue', 'n_snps_in_model', 'pred_perf_p', 'pred_perf_R2')], grch37[, c('ensgene', 'chr', 'start', 'end')], by =c('gene'='ensgene'))")
         annotatedData = annotatedData.drop_duplicates()
 
         # ouput annotated data 
@@ -149,16 +152,14 @@ def qqplot(projectName):
 
     global projectID 
 
-    # load module 
+    # load R package
     qqman = importr('qqman')
     
     # current path 
     currentPath = os.getcwd()
 
     # back to root path 
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('..')
+    os.chdir('../../../')
     root_path = os.getcwd()
 
     # annotated metaxcan file path 
@@ -199,8 +200,8 @@ def qqplot(projectName):
     os.chdir(qqplot_output_path)
 
     # draw qq-plot and save them to files 
-    r.png('%s%s%s'%('QQ-Plot_', 'merged_annotated_metaxcan_output', '.png'))
-    qqman.qq(data['pvalue'],  main = "Q-Q plot of GWAS p-values")
+    r.png('%s%s%s'%('QQ-Plot_', 'metaxcan_output', '.png'))
+    qqman.qq(data['pvalue'],  main = "QQ plot")
     r['dev.off']()
 
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
@@ -222,9 +223,7 @@ def manhattan(projectName):
     currentPath = os.getcwd()
 
     # back to root path 
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('..')
+    os.chdir('../../../')
     root_path = os.getcwd()
 
     # annotated metaxcan file path 
@@ -289,9 +288,7 @@ def sortTopGeneList(projectName):
     currentPath = os.getcwd()
 
     # back to root path 
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('..')
+    os.chdir('../../../')
     root_path = os.getcwd()
 
     # annotated metaxcan file path 
@@ -323,12 +320,13 @@ def sortTopGeneList(projectName):
         df.insert(2, 'tissue', tissue_name)
 
         # sort data by defined column 
-        df.sort_values(['pvalue', 'model_n'], ascending=[1, 0], inplace=True)
+        df.sort_values(['pvalue', 'n_snps_in_model'], ascending=[1, 0], inplace=True)
         total_rows = df.shape[0] # number of row count shape[1] is number of col count 
         msg = 'total_row within tissue: ' + str(total_rows)
         add_log(msg)
         # total_rows_in_total += total_rows 
         cut_off = 0.05/total_rows 
+
         # cut_off_list.append(cut_off)
         top_gene_list = df[df['pvalue'] < cut_off]
         # top_gene_list = top_gene_list[top_gene_list['pred_perf_R2'] > 0.01]
@@ -361,7 +359,7 @@ def sortTopGeneList(projectName):
     df = df[df['pvalue'] < total_cut_off]
 
     # sort data by defined column 
-    df.sort_values(['pvalue', 'model_n'], ascending=[1, 0], inplace=True)
+    df.sort_values(['pvalue', 'n_snps_in_model'], ascending=[1, 0], inplace=True)
 
     #output data 
     df.to_csv(top_genes_output_path+ 'sorted_top_genes.csv', index = None)
@@ -382,9 +380,7 @@ def sortTopGeneListWithSNPs(projectName):
     currentPath = os.getcwd()
 
     # back to root path 
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('..')
+    os.chdir('../../../')
     root_path = os.getcwd()
 
     # set up path 
@@ -399,7 +395,7 @@ def sortTopGeneListWithSNPs(projectName):
     tissue_lists = top_genes['tissue']
     pvalue_lists = top_genes['pvalue']
     zscore_lists = top_genes['zscore']
-    model_n_lists = top_genes['model_n']
+    model_n_lists = top_genes['n_snps_in_model']
     pred_perf_R2_lists = top_genes['pred_perf_R2']
     chr_lists = top_genes['chr']
     start_lists = top_genes['start']
@@ -458,6 +454,24 @@ def sortTopGeneListWithSNPs(projectName):
 
     # Merge output data 
     query_output_of = pandas.concat(query_output_list, axis = 0)   
+    # gwas_snp = pandas.read_csv('gwas_snp.txt', sep="\s+")
+    # gwas_snp.rename(columns={'MarkerName':'rsid', 'P-value':'gwas_pvalue'}, inplace=True)
+
+    # query_output_of.merge(gwas_snp, on='rsid', how='inner')
+
+    # get tissue abbr name 
+    # load module 
+    ggplot2 = importr('ggplot2')
+    dplyr = importr('dplyr',  on_conflict="warn")
+
+    r("""
+
+    tissue_abbr <- read.delim('gtex_tissue_abbr.txt', sep='\t') %>% 
+    select(tissue_site_detail_abbr,tissue_site_detail_id)
+    colnames(tissue_abbr)[colnames(tissue_abbr) == 'tissue_site_detail_id'] = "tissue"
+
+    """) 
+
 
     top_genes_snps_output_path = root_path + '/output/' + projectName + "_" + CURRENT_TIME + '/top_genes_snps/'
 
@@ -467,6 +481,7 @@ def sortTopGeneListWithSNPs(projectName):
 
     # Output merged data 
     query_output_of.to_csv("top_genes_snps.csv", index=None)
+
 
     add_log(datetime.now().strftime('%Y.%m.%d.%H:%M:%S ') + "Done!")
 
@@ -488,9 +503,7 @@ def bubbleplot(projectName):
     currentPath = os.getcwd()
 
     # back to root path 
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('..')
+    os.chdir('../../../')
     root_path = os.getcwd()
 
     # get gwas_lead_snp.txt file 
@@ -536,33 +549,37 @@ def bubbleplot(projectName):
             print(paste("BUBBLE PLOTING", ": ", snpsNames[i]))
 
             # subset data for each snps 
-            subData <- subset(data, data$start > startSites[i] - 1500000  & 
-                data$start < startSites[i] + 1500000 & data$chr==chrosome[i])
+            subData <- subset(data, data$start > startSites[i] - 1000000  & 
+                data$start < startSites[i] + 1000000 & data$chr==chrosome[i])
             subData <- subData[order(subData$start),]
             subData <- mutate(subData, z_score=ifelse(subData$zscore > 0, '   +   ', '   -   ')) 
             # Labels = subData$gene_name
             subData$gene_name <- factor(subData$gene_name, levels=subData$gene_name)
             # subData$tissue <- factor(subData$tissue, levels=subData$tissue)
+            subData <- subData %>% 
+            inner_join(tissue_abbr, by = "tissue")
 
 
             # draw plot 
-            p <- ggplot(subData, aes(x=subData$gene_name, y=subData$tissue, size=abs(subData$zscore/2)))
+            p <- ggplot(subData, aes(x=subData$gene_name, y=subData$tissue_site_detail_abbr, size=abs(subData$zscore)))
             p + 
             geom_point(aes(colour=z_score)) + 
             scale_color_manual(values=c('blue', 'brown')) +
-            scale_size_continuous(guide=FALSE, range=c(0,max(abs(subData$zscore)/2)))+
+            scale_size_continuous(guide=FALSE, range=c(0,max(abs(subData$zscore))))+
             # ggtitle(paste('locus: ', snpsNames[i], '(chromosome', chrosome[i], ')')) +
             labs(x='Gene', y='Tissue') + 
+            ggtitle(snpsNames[i])+
             # scale_x_discrete(breaks = subData$gene_name, labels=Labels) + 
-            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
-            theme(axis.text.y = element_text(size=10, face='bold')) +
+            theme(axis.text.x = element_text(size=16, face='bold', angle = 90, hjust = 1)) +
+            theme(axis.text.y = element_text(size=16, face='bold')) +
             theme(plot.title = element_text(size=18, face='bold')) +
             # theme(axis.title= element_text(size=18, face='bold')) +
             theme(axis.title.x = element_blank(), axis.title.y = element_blank()) + 
-            theme(legend.position = "none")
+            theme(legend.position = "none") +
+            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
             # save plot 
-            ggsave(paste('bubble_plot_', snpsNames[i], '.png', sep=''), width=8, height=8)
+            ggsave(paste(snpsNames[i], '_bubble_plot', '.png', sep=''), width=12, height=12)
         } 
     """)
 
@@ -586,9 +603,7 @@ def regionplot(projectName):
     currentPath = os.getcwd()
 
     # back to root path 
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('..')
+    os.chdir('../../../')
     root_path = os.getcwd()
 
     # get gwas_lead_snp.txt file 
@@ -632,106 +647,35 @@ def regionplot(projectName):
         print(paste("REGION PLOTING", ": ", snpsNames[i]))
 
         # subset data 
-        subData <- subset(data, data$start > startSites[i] - 1500000  & data$start < startSites[i] 
-            + 1500000 & data$chr==chrosome[i])
+        subData <- subset(data, data$start > startSites[i] - 1000000  & data$start < startSites[i] 
+            + 1000000 & data$chr==chrosome[i])
         subData$logp <- -log10(subData$pvalue)
         subData <- subData[order(subData$start),]
-        if (snpsNames[i] == 'rs635634') 
-        {   # set up subset data 
-            subData <- mutate(subData, sig=ifelse(subData$logp > -log10(0.05/nrow(data)), 'Most Sig', 
-            ifelse(subData$logp > 5.30103 & subData$logp <= -log10(0.05/nrow(data)), 'Sig', 
-            ifelse(subData$logp > -log10(0.05/nrow(subData)) 
-                & subData$logp <= 5.30103, 'Less Sig','Not Sig')))) 
-            subData$gene_name <- factor(subData$gene_name, levels=subData$gene_name)
 
-            # print(paste('GENOME-WIDE P VALUE: ', 0.05/nrow(data)))
-            # print(paste('REGION-WIDE P VALUE: ', 0.05/nrow(subData)))
+        subData <- mutate(subData, sig=ifelse(subData$logp > -log10(0.05/nrow(data)), 'Most Sig', 
+        ifelse(subData$logp > 5.30103 & subData$logp <= -log10(0.05/nrow(data)), 'Sig', 
+        ifelse(subData$logp > -log10(0.05/nrow(subData)) 
+            & subData$logp <= 5.30103, 'Less Sig','Not Sig')))) 
+        subData$gene_name <- factor(subData$gene_name, levels=subData$gene_name)
 
-            # draw plot
-            p <- ggplot(subData, aes(x=gene_name, y=logp))
-            p + geom_point(aes(colour = sig)) + 
-            scale_color_manual(guide=FALSE, values=c('black', 'black', 'black', 'black')) +
-                # ggtitle(paste("locus: ", snpsNames[i], '(chromosome', chrosome[i], ')')) + 
-            labs(x='Gene', y='-log10(p-value)') +
-            # geom_label_repel(Labels, aes(label=Labels)) +
-            # geom_jitter(width = 0.5, height = 0.5) +
-            geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +   # 5 x 10-6 
-            geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
-            # theme(axis.ticks = element_line(size = 0.1)) + 
-            # theme(axis.ticks.length = unit(1, "cm")) + 
-            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
-            theme(axis.text.y = element_text(size=12, face='bold')) + 
-            theme(plot.title = element_text(size=18, face='bold')) +
-            theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
-            theme(legend.position = "none")
-        } 
-        else if (snpsNames[i] == 'rs7032221'){
-            subData <- mutate(subData, sig=ifelse(subData$logp > -log10(0.05/nrow(data)), 'Most Sig', 
-            ifelse(subData$logp > 5.30103 & subData$logp <= -log10(0.05/nrow(data)), 'Sig', 
-            ifelse(subData$logp > -log10(0.05/nrow(subData)) 
-                & subData$logp <= 5.30103, 'Less Sig','Not Sig')))) 
-            subData$gene_name <- factor(subData$gene_name, levels=subData$gene_name)
-
-            p <- ggplot(subData, aes(x=gene_name, y=logp))
-            p + geom_point(aes(colour = sig)) + 
-            scale_color_manual(guide=FALSE, values=c('black', 'black', 'black', 'black')) +
-                # ggtitle(paste("locus: ", snpsNames[i], '(chromosome', chrosome[i], ')')) + 
-            labs(x='Gene', y='-log10(p-value)') +
-            geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
-            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
-            theme(axis.text.y = element_text(size=12, face='bold')) + 
-            theme(plot.title = element_text(size=18, face='bold')) +
-            theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
-            theme(legend.position = "none")
-        }
-        else if (snpsNames[i] == 'rs1400482'){
-            subData <- mutate(subData, sig=ifelse(subData$logp > -log10(0.05/nrow(data)), 'Most Sig', 
-            ifelse(subData$logp > 5.30103 & subData$logp <= -log10(0.05/nrow(data)), 'Sig', 
-            ifelse(subData$logp > -log10(0.05/nrow(subData)) 
-                & subData$logp <= 5.30103, 'Less Sig','Not Sig')))) 
-            subData$gene_name <- factor(subData$gene_name, levels=subData$gene_name)
-
-            p <- ggplot(subData, aes(x=gene_name, y=logp))
-            p + geom_point(aes(colour = sig)) + 
-            scale_color_manual(guide=FALSE, values=c('black', 'black', 'black', 'black')) +
-                # ggtitle(paste("locus: ", snpsNames[i], '(chromosome', chrosome[i], ')')) + 
-            labs(x='Gene', y='-log10(p-value)') +
-            geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
-            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
-            theme(axis.text.y = element_text(size=12, face='bold')) + 
-            theme(plot.title = element_text(size=18, face='bold')) +
-            theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
-            theme(legend.position = "none")
-        }
-        else {
-            subData <- mutate(subData, sig=ifelse(subData$logp > -log10(0.05/nrow(data)), 'Most Sig', 
-            ifelse(subData$logp > 5.30103 & subData$logp <= -log10(0.05/nrow(data)), 'Sig', 
-            ifelse(subData$logp > -log10(0.05/nrow(subData)) 
-                & subData$logp <= 5.30103, 'Less Sig','Not Sig')))) 
-            subData$gene_name <- factor(subData$gene_name, levels=subData$gene_name)
-
-            p <- ggplot(subData, aes(x=gene_name, y=logp))
-            p + geom_point(aes(colour = sig)) + 
-            scale_color_manual(guide=FALSE, values=c('black', 'black', 'black', 'black')) +
-                # ggtitle(paste("locus: ", snpsNames[i], '(chromosome', chrosome[i], ')')) + 
-            labs(x='Gene', y='-log10(p-value)') +
-            geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
-            geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
-            theme(axis.text.x = element_text(size=8, face='bold', angle = 90, hjust = 1)) +
-            theme(axis.text.y = element_text(size=12, face='bold')) + 
-            theme(plot.title = element_text(size=18, face='bold')) +
-            theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
-            theme(legend.position = "none")
-        } 
+        p <- ggplot(subData, aes(x=gene_name, y=logp))
+        p + geom_point(aes(colour = sig)) + 
+        scale_color_manual(guide=FALSE, values=c('black', 'black', 'black', 'black')) +
+            # ggtitle(paste("locus: ", snpsNames[i], '(chromosome', chrosome[i], ')')) + 
+        labs(x='Gene', y='-log10(p-value)') +
+        ggtitle(snpsNames[i])+
+        geom_hline(yintercept = 5.30103, linetype='dashed', color='black') +
+        geom_hline(yintercept = -log10(0.05/nrow(data)), color='black') +
+        geom_hline(yintercept = -log10(0.05/nrow(subData)), linetype='dashed', color='black') +
+        theme(axis.text.x = element_text(size=16, face='bold', angle = 90, hjust = 1)) +
+        theme(axis.text.y = element_text(size=16, face='bold')) + 
+        theme(plot.title = element_text(size=18, face='bold')) +
+        theme(axis.title.x = element_blank(), axis.title.y=element_text(size=18, face='bold')) + 
+        theme(legend.position = "none")+
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
         # output plot 
-        ggsave(paste("region_plot_", snpsNames[i], '.png',sep=''), width=8, height=8)
+        ggsave(paste(snpsNames[i], '_region_plot', '.png',sep=''), width=12, height=12)
         } 
     """) 
 
@@ -753,9 +697,7 @@ def locuszoom_plot(projectName):
     currentPath = os.getcwd()
 
     # back to root path 
-    os.chdir('..')
-    os.chdir('..')
-    os.chdir('..')
+    os.chdir('../../../')
     root_path = os.getcwd()
 
     # make batch_locuszoom.txt file 
@@ -770,7 +712,7 @@ def locuszoom_plot(projectName):
         gwas_lead_snp <- read.csv('sorted_top_genes.csv') %>% 
           select(gene_name, chr, start, end) %>%
           distinct() %>% 
-          mutate(flank='2MB', run = 'yes', m2zargs= "showAnnot=F")
+          mutate(flank='1.0MB', run = 'yes', m2zargs= "showAnnot=F")
           colnames(gwas_lead_snp) = c('snp', 'chr', 'start', 'stop', 'flank', 'run', 'm2zargs')
           write.table(gwas_lead_snp, file="batch_locuszoom.txt", sep=" ", quote=FALSE, row.names=F)
 

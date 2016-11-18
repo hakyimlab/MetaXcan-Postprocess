@@ -20,8 +20,8 @@ current_logs = None
 LINE =  '-----------------------------------------------------------------------------------------'
 SQL_QUERY_PREFIX = "select e.genename, w.rsid from weights w join extra e on w.gene = e.gene where e.genename = '"
 SQL_QUERY_PREFIX_DNG = "select gene, rsid from weights where gene = '"
-# CURRENT_TIME = datetime.now().strftime('%Y-%m-%d-%H.%M.%S') 
-CURRENT_TIME = '2016-05-30-21.10.42'
+CURRENT_TIME = datetime.now().strftime('%Y-%m-%d-%H.%M.%S') 
+# CURRENT_TIME = '2016-11-16-17.57.56'
 
 
 ###################

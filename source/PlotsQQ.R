@@ -214,3 +214,10 @@ qq_unif_plot <- function(data, title=NULL, columns=NULL, force_gray_title='GTEx'
   return(p)
 }
 
+do_qq_unif_plot <- function(d, output_path, title) {
+  qq <- build_qqunif_data(d)
+  p <- qq_unif_plot(qq, title)
+  png(output_path, width=600, height=600)
+  print(p)
+  dev.off()
+}

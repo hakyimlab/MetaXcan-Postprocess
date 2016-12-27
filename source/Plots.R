@@ -6,19 +6,22 @@
 library(ggplot2)
 library(qqman)
 
-do_manhattan_plot_from_data <- function(data, file_prefix) {
+do_manhattan_plot_from_data <- function(data, path) {
     c <- data[complete.cases(data),]
-    if(!("pval" %in% colnames(c)))
+    if(!("pvalue" %in% colnames(c)))
     {
-        c$pval <- 2*pnorm(-abs(c$zscore))
+        c$pvalue <- 2*pnorm(-abs(c$zscore))
     }
+
+    c$pvalue <- pmax(c$pvalue, 1e-30)
 
     nn = length(data$zscore)
     p_b = 0.05/nn
 
-    image <- paste(file_prefix, "-manhattan.png", sep="")
-    png(filename=image,width=1024,height=768)
-    manhattan(c, chr="chr", bp="base_position", p="pval", snp="gene_name",
+    c$chromosome <- as.numeric(c$chromosome)
+
+    png(filename=path,width=1024,height=768)
+    manhattan(c, chr="chromosome", bp="start_location", p="pvalue", snp="gene_name",
             suggestiveline=-log10(p_b), genomewideline=FALSE, annotatePval=p_b, annotateTop=FALSE)
 #    manhattan(c, chr="chr", bp="base_position", p="pval", snp="gene", annotatePval=1e-5, annotateTop=FALSE)
     dev.off()

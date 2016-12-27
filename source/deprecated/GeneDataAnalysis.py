@@ -15,6 +15,7 @@ import metax.ZScoreCalculation as ZScoreCalculation
 import metax.MethodGuessing as MethodGuessing
 
 
+
 def get_gene_data(gene_name, weight_db_logic, covariance_contents, betas):
     g = None
     gs = [gene_entry for gene, gene_entry in weight_db_logic.gene_data_for_gene.iteritems() if gene_entry.gene_name == gene_name]

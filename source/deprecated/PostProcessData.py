@@ -15,7 +15,21 @@ EXCLUDED = { "MROH7":True, "DCAF8":True, "F11R":True,"LIMS3":True, "CRYBG3":True
              "SHOX":True, "CRLF2":True, "CSF2RA":True, "IL3RA":True, "SLC25A6":True, "ASMTL":True, "P2RY8":True, "AKAP17A":True, "ASMT":True,
              "DHRSX":True, "ZBED1":True, "CD99":True, "SPRY3":True, "VAMP7":True, "IL9R":True}
 
-M_R_HEADER = "gene,gene_name,zscore,pvalue,pred_perf_R2,VAR_g,n,covariance_n,model_n"
+class MRTF:
+    gene=0
+    gene_name=1
+    zscore=2
+    effect_size=3
+    pvalue=4
+    VAR_g=5
+    pred_perf_R2=6
+    pred_perf_p=7
+    pred_perf_q=8
+    n_snps_used=9
+    n_snps_in_cov=10
+    n_snps_in_model=11
+
+    HEADER = "gene,gene_name,zscore,effect_size,pvalue,VAR_g,pred_perf_R2,pred_perf_p,pred_perf_q,n_snps_used,n_snps_in_cov,n_snps_in_model"
 
 class PostProcessData(object):
     def __init__(self, args):
@@ -32,15 +46,15 @@ class PostProcessData(object):
         # this will go through the same files again. Inefficient but convenient code-wise
         gene_digest, gene_digest_by_name = Gene.Gene.loadFromDigest(self.gene_digest_file)
 
-        gene_name = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.zscore_path, ",", 1, header=M_R_HEADER)
-        zscore = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.zscore_path, ",", 2, header=M_R_HEADER)
-        n_snp = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.zscore_path, ",", 7, header=M_R_HEADER)
+        gene_name = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.zscore_path, ",", MRTF.gene_name, header=MRTF.HEADER)
+        zscore = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.zscore_path, ",", MRTF.zscore, header=MRTF.HEADER)
+        n_snp = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.zscore_path, ",", MRTF.n_snps_used, header=MRTF.HEADER)
 
         predixcan_header = "gene beta z-stat p-val" if not self.save_error_proxy else "gene beta z-stat p-val se(beta)"
         predixcan = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.predixcan_path, " ", 2, header=predixcan_header)
 
         # this will go through the same files again. Inefficient but convenient code-wise
-        var_g = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.zscore_path, ",", 5, M_R_HEADER) if self.save_error_proxy else None
+        var_g = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.zscore_path, ",", MRTF.VAR_g, MRTF.HEADER) if self.save_error_proxy else None
         predixcan_beta_error = KeyedDataSet.KeyedDataSetFileUtilities.loadFromFile(self.predixcan_path, " ", 4,header=predixcan_header) if self.save_error_proxy else None
 
         with open(self.output_path, 'w') as file:

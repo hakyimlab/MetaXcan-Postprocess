@@ -14,6 +14,15 @@ import metax.Utilities as Utilities
 import metax.MatrixUtilities as MatrixUtilities
 import metax.ZScoreCalculation as ZScoreCalculation
 
+def get_gene_data(gene_name, weight_db_logic):
+    g = None
+    for gene, gene_entry in weight_db_logic.gene_data_for_gene.iteritems():
+        if gene_entry.gene_name == gene_name:
+            g = gene_entry
+            break
+    if g == None:
+        raise RuntimeError("No valid gene data found")
+    return g
 
 class GeneStats(object):
     def __init__(self, args):

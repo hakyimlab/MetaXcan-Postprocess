@@ -5,58 +5,6 @@
 
 library(ggplot2)
 library(qqman)
-require(cowplot)
-
-lm_eqn <- function(df){
-  m <- lm(predixcan_z ~ metaxcan_z, df);
-  eq <- substitute(italic(r)^2~"="~r2,
-                   list(r2 = format(summary(m)$r.squared, digits = 3)))
-  t <- as.character(as.expression(eq));
-  return(t)
-}
-
-m_p_plot <- function(data, r_x=-2, r_y=1, r_font_size=10, r_support=NULL,
-      title_font_size=10, facet_font_size=12, axis_text_size=10, theme=NULL) {
-  p <- ggplot(data, aes(x=metaxcan_z, y=predixcan_z))
-  if (is.null(theme)) {
-    p <- p + theme_bw()
-  } else {
-    p <- p + theme
-  }
-  p <- p +  theme(
-      axis.text = element_text(size = axis_text_size),
-      axis.title.y = element_text(size= title_font_size, face="bold", margin=margin(0,20,0,10)),
-      axis.title.x = element_text(size= title_font_size, face="bold", margin=margin(20,0,10,0)),
-      strip.text = element_text(size=facet_font_size, face ="bold"))+
-    labs(y = "PrediXcan Association Result", x = "MetaXcan Association Result") +
-    geom_abline(intercept=0, slope=1, colour="grey49") +
-    geom_point(size = 2) +
-    geom_text(data=r_support, 
-              aes(x = r_x, y = r_y, label = R2), 
-              fontface="bold", size=r_font_size, parse = TRUE, colour = "#335533")
-  return (p)
-}
-
-m_p_grid_plot <- function(data, r_x=-2, r_y=1, r_font_size=10, 
-      title_font_size=10, facet_font_size=12, axis_text_size=10) {
-
-  support <- data %>% distinct(study,reference, R2)
-  p <- m_p_plot(data, r_x, r_y, r_font_size, support, 
-                title_font_size, facet_font_size, axis_text_size) +
-    facet_grid(reference ~ study) 
-  return (p)
-}
-
-m_p_facet_plot <- function(data, r_x=-2, r_y=1, r_font_size=10, 
-    title_font_size=10, facet_font_size=12, axis_text_size=10, columns=1, theme = NULL) {
-  
-  support <- data %>% distinct(the_facet, R2)
-  p <- m_p_plot(data, r_x, r_y, r_font_size, support, 
-                title_font_size, facet_font_size, axis_text_size, theme = theme) +
-    facet_wrap(~the_facet,scales="fixed", ncol=columns) +
-    theme(panel.margin = unit(2, "lines"))
-  return(p)
-}
 
 process_zscore_file <- function(file_prefix) {
 	file <- paste(file_prefix, ".csv", sep="")
@@ -290,14 +238,14 @@ qq_unif_faceted <- function(df, title=NULL, columns=2) {
     p <- p + geom_abline(intercept=0, slope=1, colour='gray')
 
     p <- p +
-        geom_abline(aes(intercept=-log10(0.05), slope=1, colour='FDR = 0.05'), linetype=1, show_guide = TRUE) +
+        geom_abline(intercept=-log10(0.05), slope=1, aes(colour='FDR = 0.05'), linetype=1, show_guide = TRUE) +
         geom_abline(intercept=-log10(0.10), slope=1, aes(colour='FDR = 0.10'),linetype=2, show_guide = TRUE) +
         geom_abline(intercept=-log10(0.25), slope=1, aes(colour='FDR = 0.25'),linetype=3, show_guide = TRUE) +
         scale_colour_manual("",
                       labels = c('FDR = 0.05', 'FDR = 0.10', 'FDR = 0.25'),
                       breaks = c('FDR = 0.05', 'FDR = 0.10', 'FDR = 0.25'),
-                      values = c("red", "orange", "yellow")) 
-        #theme(legend.position="bottom")
+                      values = c("red", "orange", "yellow")) +
+        theme(legend.position="bottom")
   #scale_colour_manual(name='', values=c('FDR = 0.05'='red', 'FDR = 0.10'='orange', 'FDR = 0.25'='yellow'))
 #legend('bottomright', c("FDR = 0.05","FDR = 0.10","FDR = 0.25"),
 #             col=c('red','orange','yellow'),lty=1:3, cex=1)
@@ -339,34 +287,4 @@ build_qq_unif_grid <- function(files, facets, title, columns, output) {
     png(filename=output,width=768,height=800)
     print(p)
     dev.off()
-}
-
-tileplot.order <- function(output_path,corr_mat,df.order,title=NULL)
-{
-  the_names <- rownames(corr_mat)
-  mat <- data.frame(corr_mat)
-  names(mat) <- the_names
-  mat$Var1 <- the_names
-  melted_mat <- gather(mat,key=Var2,value=value,-Var1)
-  
-  df.order <- df.order %>% filter(!is.na(orden))
-  df.order$pheno.short <- factor(df.order$pheno.short)
-  df.order$pheno.short <- reorder(df.order$pheno.short,df.order$orden)
-  
-  melted_mat <- inner_join(melted_mat,df.order,by=c("Var1"="pheno"))
-  melted_mat <- inner_join(melted_mat,df.order,by=c("Var2"="pheno"))
-  pp <- ggplot(melted_mat,aes(x=pheno.short.x,y=pheno.short.y,fill=value)) + geom_tile() +
-    scale_fill_gradientn(colours = c("#C00000", "#FF0000", "#FF8080", "#FFC0C0", "#FFFFFF", "#C0C0FF", "#8080FF", "#0000FF", "#0000C0"), limit = c(-1,1)) +
-    theme(axis.text.x = element_text(angle = 90, vjust = 1, lineheight = 10,
-                                     hjust = 1),
-          axis.text.y = element_text(vjust = 0, 
-                                     hjust = 1),
-          axis.title.x = element_text(size=0),
-          axis.title.y = element_text(size=0),
-          axis.ticks = element_line(size=0)) +
-          ylim(rev(levels(melted_mat$pheno.short.x)))
-  if(!is.null(title)) pp = pp + ggtitle(title)
-  png(output_path)
-  print(ggdraw(switch_axis_position(pp, axis ='x')))
-  dev.off()
 }

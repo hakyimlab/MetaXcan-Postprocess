@@ -1,5 +1,5 @@
 '''
-A simple "main()" that loads MetaXcanPostprocessing file 
+A simple "main()" that loads functions from MetaXcanPostprocessing.py 
 '''
 
 import sys, os, glob, subprocess

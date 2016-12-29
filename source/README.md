@@ -20,10 +20,14 @@ General usage looks like:
 with a `DGN` component in their file name string,
 and produce output in `results/images`.
 
-It requires a gencode file such as [this](ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz) ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz
+It requires a gencode file such as this:
+`ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz`
 
-Please bear in mind hat at the time of this writing, MetaXcan uses gene data that is derived from Gencode release 19
-(GTEx v6p)
+Please bear in mind hat at the time of this writing, MetaXcan uses a gene annotation that is derived from Gencode release 19, GTEx v6p
+```
+# GTEx login required:
+http://www.gtexportal.org/static/datasets/gtex_analysis_v6/reference/gencode.v19.genes.patched_contigs.gtf.gz
+```
 
 
 # Requirements

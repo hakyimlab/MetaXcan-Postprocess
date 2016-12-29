@@ -70,7 +70,6 @@ def load_gene_annotation(path, only_genes=True):
             key_value_pairs = [x.translate(None, "'\";") for x in comps[GFTF.KEY_VALUE_PAIRS:]]
             key_value_pairs = key_value_pairs_to_dict(key_value_pairs)
 
-
             chromosome.append(comps[GFTF.CHROMOSOME])
             start_location.append(comps[GFTF.N_START_LOCATION])
             gene_id.append(key_value_pairs[GFTF.K_GENE_ID])

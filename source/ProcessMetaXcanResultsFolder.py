@@ -40,6 +40,7 @@ def annotation(path, only_numeric_chromosomes=True):
     GENE_NAME = Gencode.GFTF.K_GENE_NAME
     gencode = Gencode.load_gene_annotation(path)
 
+    gencode.chromosome = gencode[CHROMOSOME].str.replace("chr", "")
     if only_numeric_chromosomes:
         gencode = gencode[gencode[[CHROMOSOME]].apply(lambda x: x[0].isdigit(), axis=1)]
 
@@ -74,7 +75,7 @@ def run(args):
     for f in files:
         in_path = os.path.join(args.input_folder, f)
         out_path = os.path.join(args.output_folder, f)
-        out_prefix = out_path.split(".")[0]
+        out_prefix = os.path.splitext(out_path)[0]
         process(gene_annotation, in_path, out_prefix)
 
 
@@ -84,7 +85,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--input_folder",
                         help="name of folder with zscore files",
-                        default="results_ew/results")
+                        default=None)
 
     parser.add_argument("--pattern",
                         help="name pattern to select files",

@@ -26,7 +26,7 @@ It requires a gencode file such as this:
 Please bear in mind hat at the time of this writing, MetaXcan uses a gene annotation that is derived from Gencode release 19, GTEx v6p
 ```
 # GTEx login required:
-http://www.gtexportal.org/static/datasets/gtex_analysis_v6/reference/gencode.v19.genes.patched_contigs.gtf.gz
+http://www.gtexportal.org/static/datasets/gtex_analysis_v6p/reference/gencode.v19.genes.v6p_model.patched_contigs.gtf.gz
 ```
 
 

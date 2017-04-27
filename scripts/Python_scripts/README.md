@@ -15,17 +15,15 @@
 +  <a rel="nofollow" class="external text" href="https://github.com/hadley/ggplot2"> ggplot2 </a>
 
 ## Installation and Setup 
-+ Download this pipline as `<dir>/MetaXcan-Postprocess`:
- + Navigate to the directory (referenced as <dir> thereafter) where all package files should be located.  
- + `run.sh` - Helper bash script that launches run_MetaXcanPostprocessing file 
- + `run_MetaXcanPostprocessing.py` - A simple "main()" that loads `MetaXcanPostprocessing.py` and `run_locuszoom.py`
+ + Download this pipline as `<dir>/MetaXcan-Postprocess`:
+ + Navigate to the `src`.  
  + `MetaXcanPostprocessing.py` - This is where all post-processing computation will be. 
  + `run_locuszoom.py` - A script that runs standalone software `locuszoom`  
  + `helpers.py` - This contains all helper functions   
  + `__init__.py` - This is a marker file that marks current directory as python package directory 
  + `README.md` - A brief description about this pipline 
-+ <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> Download LocusZoom (37.5GB) </a> as `<dir>/locuszoom`
-+ Create a new fold as `<dir>/input`, and include the following files:  
+ + <a href = "http://genome.sph.umich.edu/wiki/LocusZoom_Standalone"> Download LocusZoom (37.5GB) </a> as `<dir>/locuszoom`
+ + Create a new fold as `<dir>/input`, and include the following files:  
   + <a href = "http://hakyimlab.org/predictdb/"> Prediction models </a> (`*.db`)
   + <a href = "http://pngu.mgh.harvard.edu/~purcell/plink/"> plink </a> (`plink`)
   + MetaXcan outputs (`*.csv`) 
@@ -39,7 +37,7 @@
 
 ## Run 
 + Open the terminal, and execute:
- ```./run.sh <your project title>``` 
+ ```python MetaXcanPostprocessing.py <your project title>``` 
 
 ## Output 
 + two new folders which are used to save log information and results: 
@@ -56,5 +54,3 @@
 
 
 --------------------------------------------------------------------------------
-
-2016 Im lab, Section of Genetics, Department of Medicine, University of Chicago. 

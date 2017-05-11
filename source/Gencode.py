@@ -75,7 +75,6 @@ def load_gene_annotation(path, only_genes=True):
             gene_id.append(key_value_pairs[GFTF.K_GENE_ID])
             gene_name.append(key_value_pairs[GFTF.K_GENE_NAME])
 
-
     r = {GFTF.K_CHROMOSOME:chromosome,
          GFTF.K_START_LOCATION:start_location,
          GFTF.K_GENE_ID:gene_id,
